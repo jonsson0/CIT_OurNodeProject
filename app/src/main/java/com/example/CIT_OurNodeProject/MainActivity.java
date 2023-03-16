@@ -1,4 +1,4 @@
-package dk.stbn.p2peksperiment;
+package com.example.CIT_OurNodeProject;
 
 
 import android.net.wifi.WifiInfo;
