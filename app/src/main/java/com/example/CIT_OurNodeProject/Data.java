@@ -14,10 +14,13 @@ public class Data {
         this.data = data;
     }
 
-
     public String hash(String data) {
-
-        String hashedData = data + " (Hashed)";
+        String hashedData = "";
+        try {
+            hashedData = SHA256.toHexString(SHA256.getSHA(data));
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
         return hashedData;
     }
 }

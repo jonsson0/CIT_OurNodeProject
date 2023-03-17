@@ -5,16 +5,18 @@ import org.json.*;
 public class Request {
     public String method;
     public String path;
-    public String body;
+    public JSONObject body;
 
     public void fromString(String requestString) {
-        JSONObject json = null;
+        JSONObject json;
         try {
-            json = new JSONObject(requestString);
 
+            json = new JSONObject(requestString);
+            System.out.println("5555555555555555");
+            System.out.println(json);
             this.method = json.getString("method");
             this.path = json.getString("path");
-            this.body = json.getString("body");
+            this.body = bodyToJson(json.getString("body"));
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
@@ -31,6 +33,24 @@ public class Request {
             throw new RuntimeException(e);
         }
         return json;
+    }
+
+    private JSONObject bodyToJson(String body) {
+
+        System.out.println("11111111111111111111111111111111111");
+
+        System.out.println(body);
+        JSONObject json;
+        try {
+            json = new JSONObject(body);
+            System.out.println(json);
+            return json;
+        }catch (Exception e) {
+            System.out.println(e);
+            System.out.println(body.charAt(24));
+            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        }
+        return null;
     }
 
     public String toString(){

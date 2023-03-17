@@ -13,6 +13,9 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -77,6 +80,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         sUpdate("This IP is " + THIS_IP_ADDRESS);
 
         node = new Node(THIS_IP_ADDRESS);
+
+        Data data = new Data("123");
+
+        node.listOfData.add(data);
+      //  System.out.println(data.id);
 
         node.phoneBookLeft.IPs.add("192.168.0.104");
         node.phoneBookLeft.IPs.add("192.168.0.104");
@@ -225,7 +233,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 while (carryOn) {
 
-                    String message = apiHandler.createHttpRequestAsString("get", "getPhoneBook", "");
+                    JSONObject json = new JSONObject();
+                    JSONObject innerJson = new JSONObject();
+
+
+
+                    try {
+                        innerJson.put("Id", "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3" );
+                        innerJson.put("Value", "");
+                        innerJson.put("IsParent", "false" );
+                        innerJson.put("IsGlobal", "false" );
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    try {
+                        json.put("Data", innerJson);
+
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    String message = apiHandler.getData("123");
+
+                   // String message = apiHandler.createHttpRequestAsString("get", "getData", json.toString());
+                    System.out.println("66666666666666");
+                    System.out.println(message);
                     out.writeUTF(message);
                     out.flush();
                     cUpdate("I said:      " + message);

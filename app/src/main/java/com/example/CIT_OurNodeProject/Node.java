@@ -22,8 +22,11 @@ public class Node {
 
     public void init(String IP, ApiHandler apiHandler) {
         apiHandler.createHttpRequestAsString("get", "getPhoneBook", "");
+    }
 
-
+    public void addDataFromString(String inputString) {
+        Data data = new Data(inputString);
+        listOfData.add(data);
     }
 
     public void contactNeighbor(String IP, String path) {
