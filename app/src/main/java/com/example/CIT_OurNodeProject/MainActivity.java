@@ -159,9 +159,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //Run conversation
                 while (carryOn) {
                     String str = (String) instream.readUTF();
-                    sUpdate("Client " + number + " says: " + str);
 
-                    Request request = apiHandler.readHttpRequest(str);
+                    Request requestFromClient = apiHandler.readHttpRequest(str);
+
+                    sUpdate("Client " + number + " says: " + requestFromClient.toString());
+
                     String answer = "";
 
                     answer = apiHandler.requestHandler(str);
