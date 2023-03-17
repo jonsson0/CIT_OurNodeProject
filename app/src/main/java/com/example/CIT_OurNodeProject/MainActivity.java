@@ -103,11 +103,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 clientStarted = true;
                 clientThread.start();
                 clientinfo += "- - - CLIENT STARTED - - - \n";
-                startClientButton.setText("Stop");
+                startClientButton.setText("Resend");
 
-            } else {
-                carryOn = false; //NOT a good solution
-                startClientButton.setText("Start Again");
+            } else{
+                if(!ipInputField.getText().toString().equals(REMOTE_IP_ADDRESS)) {
+                   // String newCommand = ipInputField.getText().toString();
+                   // String[] newCommandList = newCommand.split(",");
+                   // command = HandleApi.createHttpRequest(newCommandList[0], newCommandList[1], newCommandList[2]);
+
+                }else{
+                    // command = HandleApi.createHttpRequest("Get", "getId", "empty");
+                  //  System.out.println(command);
+                }
+                Thread clientThread = new Thread(new MyClientThread());
+                clientThread.start();
             }
         } else if (view == submitIP) {
             if (!ip_submitted) {
