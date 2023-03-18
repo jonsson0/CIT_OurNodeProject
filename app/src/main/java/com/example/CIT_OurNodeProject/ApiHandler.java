@@ -107,11 +107,22 @@ public class ApiHandler {
 
     // for client:
 
-    public void getId() {
-        createHttpRequestAsString("get", "getid", "");
+    public String getId() {
+        return createHttpRequestAsString("get", "getid", "");
     }
-    public void NewNeighbor() {
+    public String newNeighbor(String side) {
 
+        JSONObject innerJson = new JSONObject();
+
+        try {
+            innerJson.put("Side", side );
+
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+
+        return createHttpRequestAsString("get", "getid", innerJson.toString());
     }
     public void getPhonebook() {
         createHttpRequestAsString("get", "getphonebook", "");
@@ -168,7 +179,7 @@ public class ApiHandler {
             throw new RuntimeException(e);
         }
 
-        return createHttpRequestAsString("put", "adddata", bodyJson.toString());
+        return createHttpRequestAsString("put", "adddata", innerJson.toString());
 
     }
     public String deleteData(Data data, boolean isParent, boolean isGlobal) {
