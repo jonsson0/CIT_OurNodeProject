@@ -8,10 +8,16 @@ public class Data {
     String id;
     String data;
 
+    boolean isParentData;
+
     public Data(String data) {
 
         this.id =  hash(data);
         this.data = data;
+    }
+
+    public void getDataObject(String dataId){
+
     }
 
     public String hash(String data) {

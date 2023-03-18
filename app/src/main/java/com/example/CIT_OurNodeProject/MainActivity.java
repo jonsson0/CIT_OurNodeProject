@@ -29,7 +29,7 @@ import java.nio.ByteOrder;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     // UI-elements
-    private Button startClientButton, submitIP;
+    private Button startClientButton, submitIP, sendRequest;
     private TextView serverInfoTv, clientInfoTv;
     private EditText ipInputField;
 
@@ -62,6 +62,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //UI boilerplate
         startClientButton = findViewById(R.id.button);
+
+        sendRequest = findViewById(R.id.sendRequest);
+
+
         serverInfoTv = findViewById(R.id.serveroutput);
         clientInfoTv = findViewById(R.id.clientoutput);
         submitIP = findViewById(R.id.sendclient);
@@ -70,6 +74,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //Setting click-listeners on buttons
         startClientButton.setOnClickListener(this);
         submitIP.setOnClickListener(this);
+        sendRequest.setOnClickListener(this);
 
         //Setting some UI state
         ipInputField.setHint("Submit IP-address");
@@ -86,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         node.listOfData.add(data);
       //  System.out.println(data.id);
 
-        node.phoneBookLeft.IPs.add("192.168.0.104");
+        node.phoneBookLeft.IPs.add("192.168.0.79");
         node.phoneBookLeft.IPs.add("192.168.0.104");
         node.phoneBookLeft.IPs.add("192.168.0.104");
 
@@ -97,10 +102,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
         apiHandler = new ApiHandler(node);
+        apiHandler.activity = this;
         //Starting the server thread
         serverThread.start();
         serverinfo += "- - - SERVER STARTED - - -\n";
 
+    }
+
+    public void makeRequest(String ip, String requestString){
+        System.out.println("--------------------------------------------------AUTO ---------SEND REQUEST----------------------------------------" );
+        REMOTE_IP_ADDRESS = ip;
+        MyClientThread thread = new MyClientThread();
+        thread.message = requestString;
+        Thread clientThread = new Thread(thread);
+
+        clientThread.start();
+
+        clientinfo += "- - - CLIENT STARTED - - - \n";
+        sendRequest.setText("Resend req");
     }
 
     @Override
@@ -109,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (view == startClientButton) {
             if (!clientStarted) {
                 clientStarted = true;
-                clientThread.start();
+//                clientThread.start();
                 clientinfo += "- - - CLIENT STARTED - - - \n";
                 startClientButton.setText("Resend");
 
@@ -133,7 +152,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startClientButton.setEnabled(true);
                 submitIP.setEnabled(false);
             }
-        }
+        } else if (view == sendRequest) {
+            System.out.println("----------------------------------------------------------------------SEND REQUEST----------------------------------------" );
+            String reqstring = apiHandler.requestAddData(new Data("1233"), true, false);
+            makeRequest(REMOTE_IP_ADDRESS, reqstring);
+
+            clientinfo += "- - - CLIENT STARTED - - - \n";
+            sendRequest.setText("Resend req");
+            }
+
 
     }//onclick
 
@@ -150,6 +177,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     sUpdate("SERVER connection accepted");
                     clientNumber++;
                     new RemoteClient(clientSocket, clientNumber).start();
+//                    new RemoteClient(clientSocket, clientNumber).start();
 
                 }//while listening for clients
 
@@ -167,7 +195,46 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             this.client = clientSocket;
             this.number = number;
         }
+
         public void run() {
+
+            try {
+                DataInputStream instream = new DataInputStream(client.getInputStream());
+                DataOutputStream outstream = new DataOutputStream(client.getOutputStream());
+
+                //Run conversation
+                String str = (String) instream.readUTF();
+
+                Request requestFromClient = apiHandler.readHttpRequest(str);
+
+//                sUpdate("Client " + number + " says: " + requestFromClient.toString() + "\n-----------------------------------------------------------");
+                String answer = "";
+
+                answer = apiHandler.requestHandler(str);
+                sUpdate(answer + "\n-----------------------------------------------------------");
+
+                // open new connection when needed. Like with addData requests
+
+
+//                sUpdate("Reply to client " + number + ": " + answer + "\n-----------------------------------------------------------");
+                outstream.writeUTF(answer);
+                outstream.flush();
+                waitABit();
+
+
+                //Closing everything down
+                client.close();
+//                sUpdate("SERVER: Remote client " + number + " socket closed");
+//                instream.close();
+//                sUpdate("SERVER: Remote client " + number + " inputstream closed");
+//                outstream.close();
+//                sUpdate("SERVER: Remote client  " + number + "outputstream closed");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        public void run2() {
 
             try {
                 DataInputStream instream = new DataInputStream(client.getInputStream());
@@ -180,16 +247,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Request requestFromClient = apiHandler.readHttpRequest(str);
 
                     sUpdate("Client " + number + " says: " + requestFromClient.toString());
-
                     String answer = "";
 
                     answer = apiHandler.requestHandler(str);
+
+                    // open new connection when needed. Like with addData requests
+
 
                     sUpdate("Reply to client " + number + ": " + answer);
                     outstream.writeUTF(answer);
                     outstream.flush();
                     waitABit();
                 }
+
+
                 //Closing everything down
                 client.close();
                 sUpdate("SERVER: Remote client " + number + " socket closed");
@@ -220,8 +291,54 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     class MyClientThread implements Runnable {
+        String message;
         @Override
         public void run() {
+
+            try {
+                cUpdate("CLIENT: starting client socket ");
+//                REMOTE_IP_ADDRESS = node.phoneBookLeft.IPs.get(0);
+                Socket connectionToServer = new Socket(REMOTE_IP_ADDRESS, 4444);
+                cUpdate("CLIENT: client connected ");
+
+                DataInputStream instream = new DataInputStream(connectionToServer.getInputStream());
+                DataOutputStream out = new DataOutputStream(connectionToServer.getOutputStream());
+
+
+                JSONObject json = new JSONObject();
+                JSONObject innerJson = new JSONObject();
+
+
+
+
+//                String message = apiHandler.requestAddData(new Data("1233"), false, false);
+//                String message = apiHandler.requestGetData("123");
+
+//                String message = apiHandler.getData("123");
+
+                // String message = apiHandler.createHttpRequestAsString("get", "getData", json.toString());
+                out.writeUTF(message);
+                out.flush();
+                cUpdate("Request message" + message);
+//                String messageFromServer = instream.readUTF();
+//                cUpdate("Server says: " + messageFromServer);
+                waitABit();
+
+
+                instream.close();
+//                cUpdate("CLIENT: closed inputstream");
+//                out.close();
+//                cUpdate("CLIENT: closed outputstream");
+//                connectionToServer.close();
+//                cUpdate("CLIENT: closed socket");
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }
+
+        }//run()
+        public void run2() {
 
             try {
                 cUpdate("CLIENT: starting client socket ");
@@ -257,8 +374,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     String message = apiHandler.getData("123");
 
                    // String message = apiHandler.createHttpRequestAsString("get", "getData", json.toString());
-                    System.out.println("66666666666666");
-                    System.out.println(message);
                     out.writeUTF(message);
                     out.flush();
                     cUpdate("I said:      " + message);
@@ -293,13 +408,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //The below two methods are for updating UI-elements on the main thread
 
+
+    private void sendRequest(){
+
+        REMOTE_IP_ADDRESS = node.phoneBookLeft.IPs.get(0);
+
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                clientinfo = "\n" + serverinfo;
+//                serverInfoTv.setText(serverinfo);
+            }
+        });
+    }
+
+
     //Server update TexView
     private void sUpdate(String message) {
         //Run this code on UI-thread
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
-                serverinfo = message + "\n" + serverinfo;
+                serverinfo = message + "\n\n" +  serverinfo;
                 serverInfoTv.setText(serverinfo);
             }
         });
@@ -308,13 +438,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //Client update TextView
     private void cUpdate(String message) {
-        System.out.println(message);
+//        System.out.println(message);
 
         //Run this code on UI-thread
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
-                clientinfo = message + "\n" + clientinfo;
+                clientinfo = message + "\n\n" + clientinfo;
                 clientInfoTv.setText(clientinfo);
             }
         });

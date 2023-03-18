@@ -29,7 +29,33 @@ public class Node {
         listOfData.add(data);
     }
 
+    public void addData(Data data){
+        listOfData.add(data);
+    }
+
     public void contactNeighbor(String IP, String path) {
+
+    }
+
+    public Data getData(String id){
+        for (Data data:
+             listOfData) {
+            if (data.id.equals(id)){
+                return data;
+            }
+        }
+        return null;
+
+    }
+
+    public Data getData(Data dataPar){
+        for (Data data:
+                listOfData) {
+            if (data.id.equals(dataPar.id)){
+                return data;
+            }
+        }
+        return null;
 
     }
 

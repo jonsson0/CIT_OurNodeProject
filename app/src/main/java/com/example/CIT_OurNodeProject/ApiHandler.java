@@ -12,6 +12,7 @@ import java.util.Locale;
 public class ApiHandler {
 
     Node node;
+    MainActivity activity;
 
     public ApiHandler(Node node){
         this.node = node;
@@ -20,7 +21,6 @@ public class ApiHandler {
     public Request readHttpRequest(String input) {
 
         Request request = new Request();
-        System.out.println("44444444444444444444");
         request.fromString(input);
 
         return request;
@@ -32,8 +32,6 @@ public class ApiHandler {
 
         JSONObject json = request.toJson(method, path, body);
 
-        System.out.printf("7777777777777");
-        System.out.println(json);
 
         return json.toString();
     }
@@ -48,13 +46,14 @@ public class ApiHandler {
     public  String createHttpResponseAsString(String status, String body) {
 
         Response response = new Response();
-        return response.toJson(status, body).toString();
+        String rep = response.toJson(status, body).toString();
+
+        return rep;
+
     }
 
     // For server:
     public String requestHandler(String requestString) {
-        System.out.println("33333333333333333333");
-        System.out.println(requestString);
         Request request = readHttpRequest(requestString);
         String answer = "";
 
@@ -68,8 +67,6 @@ public class ApiHandler {
             case "getphonebook":
                 JSONObject json = new JSONObject();
                 node.phoneBookRight.toString();
-                System.out.println("22222222222222222222222");
-                System.out.println(node.phoneBookRight.toString());
                 try {
                     json.put("rightNeighbors", node.phoneBookRight.toString());
                     json.put("leftNeighbors", node.phoneBookLeft.toString());
@@ -79,7 +76,9 @@ public class ApiHandler {
                 answer = createHttpResponseAsString("200 ok", json.toString());
 
             case "getdata":
-                System.out.println("This is getData case");
+
+                String res = "";
+
                 String Id;
                 try {
                     JSONObject data = request.body.getJSONObject("Data");
@@ -88,29 +87,70 @@ public class ApiHandler {
                     throw new RuntimeException(e);
                 }
 
-                System.out.println(request.body);
-                System.out.println(node.listOfData.get(0).id);
                 for (Data data : node.listOfData) {
                     if (data.id.equalsIgnoreCase(Id)) {
                         answer = createHttpResponseAsString("200 ok", data.data);
+                        res = createHttpResponseAsString("200 ok", data.data);
                         break;
                     } else {
                         System.out.println("else get data");
                     }
                 }
+                answer = res;
             case "adddata":
 
+                JSONObject body;
+
+
+                String id;
+                String dataValue;
+                String isParent;
+                String isGlobal;
+                try {
+                    body = request.body.getJSONObject("data");
+                    id = body.getString("Hashed value id");
+                    dataValue = body.getString("value");
+                    isParent = body.getString("IsParent");
+                    isGlobal = body.getString("IsGlobal");
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+
+                System.out.println("before toJson");
+                addData(dataValue, isParent, isGlobal);
+
+                answer = createHttpResponseAsString("200 ok","");
+        System.out.println("------------------" + answer);
         }
 
         return answer;
     }
+
+    public void addData(String dataValue, String isParent, String isGlobal){
+
+        System.out.println("1010010100101001010100101010100101010100");
+        Data data = new Data(dataValue);
+//        System.out.println(node.getData(data));
+
+        if (!Boolean.parseBoolean(isParent)){
+            node.addData(data);
+            node.getData(data).isParentData = false;
+        } else if (Boolean.parseBoolean(isParent)) {
+            node.addData(data);
+            node.getData(data).isParentData = true;
+            activity.makeRequest(node.phoneBookLeft.IPs.get(0), requestAddData(data, false, false));
+            // trigger MainActivity to make requests to neighbours
+        }
+    }
+
+
 
     // for client:
 
     public String getId() {
         return createHttpRequestAsString("get", "getid", "");
     }
-    public String newNeighbor(String side) {
+    public String requestNewNeighbor(String side) {
 
         JSONObject innerJson = new JSONObject();
 
@@ -128,7 +168,6 @@ public class ApiHandler {
         createHttpRequestAsString("get", "getphonebook", "");
     }
     public String getData(String value) {
-        System.out.println("88888888888");
         String hashedValue;
         try {
             hashedValue = SHA256.toHexString(SHA256.getSHA(value));
@@ -152,12 +191,40 @@ public class ApiHandler {
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
-        System.out.println("999999999");
 
        return createHttpRequestAsString("get", "getid", json.toString());
 
     }
-    public String addData(Data data, boolean isParent, boolean isGlobal) {
+
+    public String requestGetData(String value) {
+        String hashedValue;
+        try {
+            hashedValue = SHA256.toHexString(SHA256.getSHA(value));
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+
+        JSONObject json = new JSONObject();
+        JSONObject innerJson = new JSONObject();
+
+        try {
+            innerJson.put("Id", hashedValue );
+
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            json.put("Data", innerJson);
+
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+        return createHttpRequestAsString("get", "getid", json.toString());
+
+    }
+    public String requestAddData(Data data, boolean isParent, boolean isGlobal) {
         String hashedValueId;
         try {
             hashedValueId = SHA256.toHexString(SHA256.getSHA(data.data));
@@ -170,7 +237,7 @@ public class ApiHandler {
 
         try {
             innerJson.put("Hashed value id", hashedValueId );
-            innerJson.put("value"          , data);
+            innerJson.put("value"          , data.data);
             innerJson.put("IsParent"       , isParent);
             innerJson.put("IsGlobal"       , isGlobal);
             bodyJson.put("data", innerJson);
@@ -179,7 +246,7 @@ public class ApiHandler {
             throw new RuntimeException(e);
         }
 
-        return createHttpRequestAsString("put", "adddata", innerJson.toString());
+        return createHttpRequestAsString("put", "adddata", bodyJson.toString());
 
     }
     public String deleteData(Data data, boolean isParent, boolean isGlobal) {

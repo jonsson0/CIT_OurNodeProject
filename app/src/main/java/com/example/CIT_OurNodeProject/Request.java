@@ -12,8 +12,6 @@ public class Request {
         try {
 
             json = new JSONObject(requestString);
-            System.out.println("5555555555555555");
-            System.out.println(json);
             this.method = json.getString("method");
             this.path = json.getString("path");
             this.body = bodyToJson(json.getString("body"));
@@ -37,13 +35,9 @@ public class Request {
 
     private JSONObject bodyToJson(String body) {
 
-        System.out.println("11111111111111111111111111111111111");
-
-        System.out.println(body);
         JSONObject json;
         try {
             json = new JSONObject(body);
-            System.out.println(json);
             return json;
         }catch (Exception e) {
             System.out.println(e);
