@@ -53,8 +53,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     ApiHandler apiHandler;
 
-
+    Request latestRequest;
     int clientNumber = 0;
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,15 +94,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         node.listOfData.add(data);
       //  System.out.println(data.id);
 
-        node.phoneBookLeft.IPs.add("192.168.0.79");
-        node.phoneBookLeft.IPs.add("192.168.0.104");
-        node.phoneBookLeft.IPs.add("192.168.0.104");
+//        node.phoneBookLeft.IPs.add("192.168.0.79");
+
+//        node.phoneBookLeft.IPs.add("192.168.0.104");
+//        node.phoneBookLeft.IPs.add("192.168.0.104");
+
+
+        node.phoneBookLeft.IPs.add(THIS_IP_ADDRESS);
+        node.phoneBookLeft.IPs.add(THIS_IP_ADDRESS);
+        node.phoneBookLeft.IPs.add(THIS_IP_ADDRESS);
+//
+
 
         node.phoneBookRight.IPs.add("192.168.0.104");
         node.phoneBookRight.IPs.add("192.168.0.104");
         node.phoneBookRight.IPs.add("192.168.0.104");
 
-
+        latestRequest = new Request();
 
         apiHandler = new ApiHandler(node);
         apiHandler.activity = this;
@@ -111,11 +122,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public void makeRequest(String ip, String requestString){
         System.out.println("--------------------------------------------------AUTO ---------SEND REQUEST----------------------------------------" );
+//        latestRequest = requestString;
         REMOTE_IP_ADDRESS = ip;
         MyClientThread thread = new MyClientThread();
-        thread.message = requestString;
+        thread.message = requestString.toString();
         Thread clientThread = new Thread(thread);
+        clientThread.start();
 
+        clientinfo += "- - - CLIENT STARTED - - - \n";
+        sendRequest.setText("Resend req");
+    }
+    public void makeRequest(String ip, Request requestString){
+        System.out.println("--------------------------------------------------AUTO ---------SEND REQUEST----------------------------------------" );
+        latestRequest = requestString;
+        REMOTE_IP_ADDRESS = ip;
+        MyClientThread thread = new MyClientThread();
+        JSONObject jsonReq = requestString.toJson();
+
+        thread.message = jsonReq.toString();
+        Thread clientThread = new Thread(thread);
         clientThread.start();
 
         clientinfo += "- - - CLIENT STARTED - - - \n";
@@ -154,7 +179,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         } else if (view == sendRequest) {
             System.out.println("----------------------------------------------------------------------SEND REQUEST----------------------------------------" );
-            String reqstring = apiHandler.requestAddData(new Data("1233"), true, false);
+            Request reqstring = apiHandler.requestGetData("1234");
+//            String reqstring = apiHandler.requestAddData(new Data("1233"), true, false);
             makeRequest(REMOTE_IP_ADDRESS, reqstring);
 
             clientinfo += "- - - CLIENT STARTED - - - \n";
@@ -181,6 +207,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 }//while listening for clients
 
+
+
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -205,12 +233,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //Run conversation
                 String str = (String) instream.readUTF();
 
-                Request requestFromClient = apiHandler.readHttpRequest(str);
+//                Request requestFromClient = apiHandler.readHttpRequest(str);
 
 //                sUpdate("Client " + number + " says: " + requestFromClient.toString() + "\n-----------------------------------------------------------");
                 String answer = "";
-
                 answer = apiHandler.requestHandler(str);
+                apiHandler.checkResponse(str);
                 sUpdate(answer + "\n-----------------------------------------------------------");
 
                 // open new connection when needed. Like with addData requests

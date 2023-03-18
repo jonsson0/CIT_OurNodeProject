@@ -7,6 +7,8 @@ public class Request {
     public String path;
     public JSONObject body;
 
+    public int requestNumber = 1;
+
     public void fromString(String requestString) {
         JSONObject json;
         try {
@@ -33,7 +35,21 @@ public class Request {
         return json;
     }
 
-    private JSONObject bodyToJson(String body) {
+    public JSONObject toJson() {
+        JSONObject json = new JSONObject();
+        try {
+            json.put("header", "HTTP/1.1");
+            json.put("path", this.path);
+            json.put("method", this.method);
+            json.put("body", this.body);
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+        return json;
+    }
+
+
+    public JSONObject bodyToJson(String body) {
 
         JSONObject json;
         try {
@@ -55,4 +71,7 @@ public class Request {
                 this.body + "\n" +
                 "  }");
     }
+
+
+
 }

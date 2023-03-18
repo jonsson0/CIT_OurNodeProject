@@ -36,6 +36,22 @@ public class ApiHandler {
         return json.toString();
     }
 
+    public Request createHttpRequest(String method, String path, String body) {
+
+        Request request = new Request();
+        request.method = method;
+        request.body = request.bodyToJson(body);
+        request.path= path;
+
+
+//        JSONObject json = request.toJson(method, path, body);
+//
+
+        return request;
+    }
+
+
+
     public  Response readHttpResponse(String input) {
 
         Response response = new Response();
@@ -60,9 +76,11 @@ public class ApiHandler {
         switch (request.path.toLowerCase()) {
             case "getid":
                 answer = createHttpResponseAsString("200 ok", node.IP);
+                break;
 
             case "newneighbor(left)":
                 // answer = createHttpResponseAsString("200 ok", node.IP);
+                break;
 
             case "getphonebook":
                 JSONObject json = new JSONObject();
@@ -74,11 +92,12 @@ public class ApiHandler {
                     throw new RuntimeException(e);
                 }
                 answer = createHttpResponseAsString("200 ok", json.toString());
+                break;
+
 
             case "getdata":
 
-                String res = "";
-
+                boolean dataFound = false;
                 String Id;
                 try {
                     JSONObject data = request.body.getJSONObject("Data");
@@ -86,26 +105,28 @@ public class ApiHandler {
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
                 }
-
                 for (Data data : node.listOfData) {
                     if (data.id.equalsIgnoreCase(Id)) {
                         answer = createHttpResponseAsString("200 ok", data.data);
-                        res = createHttpResponseAsString("200 ok", data.data);
+                        dataFound = true;
                         break;
                     } else {
                         System.out.println("else get data");
                     }
                 }
-                answer = res;
+
+                if (!dataFound) {
+                    answer = createHttpResponseAsString("404 not found", "");
+            }
+
+                break;
+
             case "adddata":
 
                 JSONObject body;
 
 
-                String id;
-                String dataValue;
-                String isParent;
-                String isGlobal;
+                String id, dataValue, isParent, isGlobal;
                 try {
                     body = request.body.getJSONObject("data");
                     id = body.getString("Hashed value id");
@@ -120,7 +141,8 @@ public class ApiHandler {
                 addData(dataValue, isParent, isGlobal);
 
                 answer = createHttpResponseAsString("200 ok","");
-        System.out.println("------------------" + answer);
+                break;
+
         }
 
         return answer;
@@ -128,9 +150,7 @@ public class ApiHandler {
 
     public void addData(String dataValue, String isParent, String isGlobal){
 
-        System.out.println("1010010100101001010100101010100101010100");
         Data data = new Data(dataValue);
-//        System.out.println(node.getData(data));
 
         if (!Boolean.parseBoolean(isParent)){
             node.addData(data);
@@ -139,11 +159,80 @@ public class ApiHandler {
             node.addData(data);
             node.getData(data).isParentData = true;
             activity.makeRequest(node.phoneBookLeft.IPs.get(0), requestAddData(data, false, false));
-            // trigger MainActivity to make requests to neighbours
+            activity.makeRequest(node.phoneBookRight.IPs.get(0), requestAddData(data, false, false));
         }
+
+        // global?
+
+        //
     }
 
+    public void checkResponse(String resp){
+//        Request request = new Request();
+//        request.fromString(req);
 
+
+
+        Request request = activity.latestRequest;
+
+        Response response = new Response();
+        response.fromString(resp);
+
+        if (response.status.contains("202")){
+            return;
+        }
+
+
+        switch (request.path){
+            case "getdata":
+//                if (activity.latestRequest.requestNumber <= 3){
+//                if (activity.latestRequest.requestNumber != 1){
+
+                    try {
+//                        String dataString = request.body.getString("Data");
+                        JSONObject dataJson = request.body.getJSONObject("Data");
+
+//                        String dumb = dataString.
+                        requestGetData(dataJson.getString("Id"));
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    String requestIp;
+                    int phonebookNumber = activity.latestRequest.requestNumber  % 3 ;
+                    System.out.println("mod: " + phonebookNumber);
+                    if (phonebookNumber == 2 && activity.latestRequest.requestNumber >= 2){
+    //                    if (phonebookNumber == 2 ){
+                        activity.makeRequest(node.phoneBookLeft.IPs.get(2), getPhonebook());
+
+                        System.out.println(activity.latestRequest.requestNumber + "      " + "response.body bitch " + response.body + "    " );
+
+                    }
+
+
+
+
+//                    else if (phonebookNumber == 2){
+//                        activity.makeRequest(node.phoneBookLeft.IPs.get(2), getPhonebook());
+//                        System.out.println("response.body bitch " + response.body);
+//                    }
+
+
+                    requestIp = node.phoneBookLeft.IPs.get(phonebookNumber);
+                    activity.makeRequest(requestIp, request);
+                    request.requestNumber ++;
+//                }
+
+
+
+                break;
+
+
+            case "w":
+                break;
+        }
+
+    }
 
     // for client:
 
@@ -164,8 +253,12 @@ public class ApiHandler {
 
         return createHttpRequestAsString("get", "getid", innerJson.toString());
     }
-    public void getPhonebook() {
-        createHttpRequestAsString("get", "getphonebook", "");
+    public String getPhonebook() {
+
+
+
+
+        return createHttpRequestAsString("get", "getphonebook", "");
     }
     public String getData(String value) {
         String hashedValue;
@@ -192,11 +285,11 @@ public class ApiHandler {
             throw new RuntimeException(e);
         }
 
-       return createHttpRequestAsString("get", "getid", json.toString());
+       return createHttpRequestAsString("get", "getdata", json.toString());
 
     }
 
-    public String requestGetData(String value) {
+    public String requestGetData2(String value) {
         String hashedValue;
         try {
             hashedValue = SHA256.toHexString(SHA256.getSHA(value));
@@ -221,7 +314,38 @@ public class ApiHandler {
             throw new RuntimeException(e);
         }
 
-        return createHttpRequestAsString("get", "getid", json.toString());
+//        return createHttpRequestAsString("get", "getid", json.toString());
+        return createHttpRequestAsString("get", "getdata", json.toString());
+
+    }
+
+    public Request requestGetData(String value) {
+        String hashedValue;
+        try {
+            hashedValue = SHA256.toHexString(SHA256.getSHA(value));
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+
+        JSONObject json = new JSONObject();
+        JSONObject innerJson = new JSONObject();
+
+        try {
+            innerJson.put("Id", hashedValue );
+
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            json.put("Data", innerJson);
+
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+//        return createHttpRequestAsString("get", "getid", json.toString());
+        return createHttpRequest("get", "getdata", json.toString());
 
     }
     public String requestAddData(Data data, boolean isParent, boolean isGlobal) {
