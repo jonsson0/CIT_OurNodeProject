@@ -146,10 +146,10 @@ public class ApiHandler {
        return createHttpRequestAsString("get", "getid", json.toString());
 
     }
-    public String addData(String data, boolean isParent, boolean isGlobal) {
-        String hashedValueId = "";
+    public String addData(Data data, boolean isParent, boolean isGlobal) {
+        String hashedValueId;
         try {
-            hashedValueId = SHA256.toHexString(SHA256.getSHA(data));
+            hashedValueId = SHA256.toHexString(SHA256.getSHA(data.data));
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
@@ -170,23 +170,30 @@ public class ApiHandler {
 
         return createHttpRequestAsString("put", "adddata", bodyJson.toString());
 
+    }
+    public String deleteData(Data data, boolean isParent, boolean isGlobal) {
+        String hashedValueId;
+        try {
+            hashedValueId = SHA256.toHexString(SHA256.getSHA(data.data));
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+
+        JSONObject innerJson = new JSONObject();
+
+        try {
+            innerJson.put("Hashed value id", hashedValueId );
+            innerJson.put("IsParent"       , isParent);
+            innerJson.put("IsGlobal"       , isGlobal);
+
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+        return createHttpRequestAsString("delete", "deletedata", innerJson.toString());
 
     }
-    public void DeleteData() {
 
-    }
-
-//    private JSONObject createJsonObject(HashMap<String, String>[] values){
-//    private JSONObject createJsonObject(String... strings2){
-//
-//        JSONObject json = new JSONObject();
-//        for (Pair value: values) {
-//
-//            json.put(value.getKey(), value.getValue());
-//        }
-//
-//
-//    }
 
 
 
