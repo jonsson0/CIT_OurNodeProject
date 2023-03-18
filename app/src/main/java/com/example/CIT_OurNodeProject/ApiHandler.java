@@ -1,8 +1,12 @@
 package com.example.CIT_OurNodeProject;
 
+import android.util.Pair;
+
 import org.json.*;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 
 public class ApiHandler {
@@ -109,8 +113,8 @@ public class ApiHandler {
     public void NewNeighbor() {
 
     }
-    public void GetPhonebook() {
-
+    public void getPhonebook() {
+        createHttpRequestAsString("get", "getphonebook", "");
     }
     public String getData(String value) {
         System.out.println("88888888888");
@@ -123,8 +127,6 @@ public class ApiHandler {
 
         JSONObject json = new JSONObject();
         JSONObject innerJson = new JSONObject();
-
-
 
         try {
             innerJson.put("Id", hashedValue );
@@ -144,12 +146,47 @@ public class ApiHandler {
        return createHttpRequestAsString("get", "getid", json.toString());
 
     }
-    public void AddData() {
+    public String addData(String data, boolean isParent, boolean isGlobal) {
+        String hashedValueId = "";
+        try {
+            hashedValueId = SHA256.toHexString(SHA256.getSHA(data));
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+
+        JSONObject bodyJson = new JSONObject();
+        JSONObject innerJson = new JSONObject();
+
+        try {
+            innerJson.put("Hashed value id", hashedValueId );
+            innerJson.put("value"          , data);
+            innerJson.put("IsParent"       , isParent);
+            innerJson.put("IsGlobal"       , isGlobal);
+            bodyJson.put("data", innerJson);
+
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+        return createHttpRequestAsString("put", "adddata", bodyJson.toString());
+
 
     }
     public void DeleteData() {
 
     }
+
+//    private JSONObject createJsonObject(HashMap<String, String>[] values){
+//    private JSONObject createJsonObject(String... strings2){
+//
+//        JSONObject json = new JSONObject();
+//        for (Pair value: values) {
+//
+//            json.put(value.getKey(), value.getValue());
+//        }
+//
+//
+//    }
 
 
 
