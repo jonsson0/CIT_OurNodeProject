@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Data data = new Data("123");
 
         node.listOfData.add(data);
-      //  System.out.println(data.id);
+        //  System.out.println(data.id);
 
 //        node.phoneBookLeft.IPs.add("192.168.0.79");
 
@@ -159,13 +159,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             } else{
                 if(!ipInputField.getText().toString().equals(REMOTE_IP_ADDRESS)) {
-                   // String newCommand = ipInputField.getText().toString();
-                   // String[] newCommandList = newCommand.split(",");
-                   // command = HandleApi.createHttpRequest(newCommandList[0], newCommandList[1], newCommandList[2]);
+                    // String newCommand = ipInputField.getText().toString();
+                    // String[] newCommandList = newCommand.split(",");
+                    // command = HandleApi.createHttpRequest(newCommandList[0], newCommandList[1], newCommandList[2]);
 
                 }else{
                     // command = HandleApi.createHttpRequest("Get", "getId", "empty");
-                  //  System.out.println(command);
+                    //  System.out.println(command);
                 }
                 Thread clientThread = new Thread(new MyClientThread());
                 clientThread.start();
@@ -180,12 +180,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else if (view == sendRequest) {
             System.out.println("----------------------------------------------------------------------SEND REQUEST----------------------------------------" );
             Request reqstring = apiHandler.requestGetData("1234");
+//            String reqstring = apiHandler.getId();
 //            String reqstring = apiHandler.requestAddData(new Data("1233"), true, false);
             makeRequest(REMOTE_IP_ADDRESS, reqstring);
 
             clientinfo += "- - - CLIENT STARTED - - - \n";
             sendRequest.setText("Resend req");
-            }
+        }
 
 
     }//onclick
@@ -233,6 +234,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //Run conversation
                 String str = (String) instream.readUTF();
 
+                System.out.println("server str" + str);
+
                 Request requestFromClient = apiHandler.readHttpRequest(str);
 
                 System.out.println("Client " + number + " says: " + requestFromClient.toString() + "\n-----------------------------------------------------------");
@@ -240,25 +243,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 String answer = "";
 //                answer = apiHandler.requestHandler(str);
                 answer = apiHandler.requestHandler(requestFromClient);
-                boolean hasGottenData = false;
 
-                while(!hasGottenData) {
-                    for (String IP: node.phoneBookLeft.IPs)
-                    {
-                        if(apiHandler.checkResponse(str)) {
-                            hasGottenData = true;
-                            break;
-                        }
-                        String newRequest = apiHandler.getPhonebook();
-                        makeRequest(IP, newRequest);
-                    }
-                    if(hasGottenData) {
-                        break;
-                    }
-
-
-                }
-                apiHandler.checkResponse(str);
+//                apiHandler.checkResponse(str);
                 sUpdate(answer + "\n-----------------------------------------------------------");
 
                 // open new connection when needed. Like with addData requests
@@ -347,18 +333,65 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             try {
                 cUpdate("CLIENT: starting client socket ");
 //                REMOTE_IP_ADDRESS = node.phoneBookLeft.IPs.get(0);
-                Socket connectionToServer = new Socket(REMOTE_IP_ADDRESS, 4444);
-                cUpdate("CLIENT: client connected ");
-
-                DataInputStream instream = new DataInputStream(connectionToServer.getInputStream());
-                DataOutputStream out = new DataOutputStream(connectionToServer.getOutputStream());
-
+//                Socket connectionToServer = new Socket(REMOTE_IP_ADDRESS, 4444);
+//                cUpdate("CLIENT: client connected ");
+//
+//                DataInputStream instream = new DataInputStream(connectionToServer.getInputStream());
+//                DataOutputStream out = new DataOutputStream(connectionToServer.getOutputStream());
 
                 JSONObject json = new JSONObject();
                 JSONObject innerJson = new JSONObject();
 
 
+                boolean hasGottenData = false;
+                PhoneBook copyPhonebook = node.phoneBookLeft.copy();
+                String newMessage;
 
+                while(!hasGottenData) {
+
+                    String IP = copyPhonebook.IPs.get(0);
+                    Socket connectionToServer = new Socket(IP, 4444);
+                    DataInputStream instream = new DataInputStream(connectionToServer.getInputStream());
+                    DataOutputStream out = new DataOutputStream(connectionToServer.getOutputStream());
+                    if(copyPhonebook.IPs.size()==1){
+                        newMessage=apiHandler.getPhonebook();
+                        out.writeUTF(newMessage);
+                        out.flush();
+                        String messageFromServer = instream.readUTF();
+                        Response response = apiHandler.readHttpResponse(messageFromServer);
+                        String stripped = null;
+                        try {
+                            stripped = response.body.getString("leftNeighbors").replaceAll("[\\[\\](){} ]","");
+                        } catch (JSONException e) {
+                            throw new RuntimeException(e);
+                        };
+
+
+                        String[] splitList = stripped.split(",");
+                        for (String ip:
+                                splitList) {
+                            copyPhonebook.IPs.add(ip);
+                        }
+                        System.out.println("message from server" + copyPhonebook.IPs);
+
+                    }
+                    else {
+                        out.writeUTF(message);
+                        out.flush();
+                        System.out.println();
+                        String messageFromServer = instream.readUTF();
+                        System.out.println("Response from server: " + messageFromServer);
+
+                        if (apiHandler.checkResponse(messageFromServer)) {
+                            hasGottenData = true;
+                            break;
+                        }
+                    }
+                    connectionToServer.close();
+                    copyPhonebook.IPs.remove(IP);
+                    System.out.println("Phonebook: " + copyPhonebook.IPs);
+
+                }
 
 //                String message = apiHandler.requestAddData(new Data("1233"), false, false);
 //                String message = apiHandler.requestGetData("123");
@@ -366,15 +399,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                String message = apiHandler.getData("123");
 
                 // String message = apiHandler.createHttpRequestAsString("get", "getData", json.toString());
-                out.writeUTF(message);
-                out.flush();
+
                 cUpdate("Request message" + message);
 //                String messageFromServer = instream.readUTF();
 //                cUpdate("Server says: " + messageFromServer);
                 waitABit();
 
 
-                instream.close();
+
 //                cUpdate("CLIENT: closed inputstream");
 //                out.close();
 //                cUpdate("CLIENT: closed outputstream");
@@ -422,7 +454,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     String message = apiHandler.getData("123");
 
-                   // String message = apiHandler.createHttpRequestAsString("get", "getData", json.toString());
+                    // String message = apiHandler.createHttpRequestAsString("get", "getData", json.toString());
                     out.writeUTF(message);
                     out.flush();
                     cUpdate("I said:      " + message);

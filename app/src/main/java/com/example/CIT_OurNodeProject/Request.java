@@ -57,8 +57,8 @@ public class Request {
             return json;
         }catch (Exception e) {
             System.out.println(e);
-            System.out.println(body.charAt(24));
-            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+//            System.out.println(body.charAt(24));
+//            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
         return null;
     }

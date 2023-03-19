@@ -5,6 +5,7 @@ import android.util.Pair;
 import org.json.*;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -270,13 +271,50 @@ public class ApiHandler {
 
         return createHttpRequestAsString("get", "getid", innerJson.toString());
     }
+
+    /*
+    *
+    public String getPhonebook() {
+
+        JSONObject outerJson = new JSONObject();
+        JSONObject innerJson = new JSONObject();
+
+//        ArrayList<String> phonebookRight = node.phoneBookRight.IPs.copy();
+
+
+        try {
+            innerJson.put("rightNeighbors", node.phoneBookRight.IPs );
+            innerJson.put("leftNeighbors", node.phoneBookLeft.IPs );
+
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            outerJson.put("Data", innerJson);
+
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+        String stringRequest = createHttpRequestAsString("get", "getphonebook", outerJson.toString());
+        System.out.println("Neighbor requests: " + stringRequest);
+        return stringRequest;
+    }
+
+    * */
+
     public String getPhonebook() {
 
 
 
-
-        return createHttpRequestAsString("get", "getphonebook", "");
+        String stringRequest = createHttpRequestAsString("get", "getphonebook", "");
+        System.out.println("Neighbor requests: " + stringRequest);
+        return stringRequest;
     }
+
+
+
     public String getData(String value) {
         String hashedValue;
         try {

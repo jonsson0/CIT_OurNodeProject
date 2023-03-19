@@ -5,21 +5,35 @@ import org.json.JSONObject;
 
 public class Response {
     public String status;
-    public String body;
+    public JSONObject body;
 
     public void fromString(String responseString) {
         JSONObject json = null;
         try {
 
             json = new JSONObject(responseString);
-            this.status = json.getString("method");
-            this.body = json.getString("body");
+            this.status = json.getString("status");
+//            this.body = json.getString("body");
+            this.body = bodyToJson(json.getString("body"));
 
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
     }
 
+    public JSONObject bodyToJson(String body) {
+
+        JSONObject json;
+        try {
+            json = new JSONObject(body);
+            return json;
+        }catch (Exception e) {
+            System.out.println(e);
+//            System.out.println(body.charAt(24));
+//            System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        }
+        return null;
+    }
 
     public JSONObject toJson(String status, String body) {
         JSONObject json = new JSONObject();

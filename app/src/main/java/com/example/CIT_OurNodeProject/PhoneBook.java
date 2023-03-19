@@ -7,7 +7,14 @@ public class PhoneBook {
 
     ArrayList<String> IPs = new ArrayList<>();
 
-
+    public PhoneBook copy(){
+        PhoneBook newPhonebook = new PhoneBook();
+        for (String ip: this.IPs
+             ) {
+            newPhonebook.IPs.add(ip);
+        }
+        return newPhonebook;
+    }
 
     public String toString(){
 
