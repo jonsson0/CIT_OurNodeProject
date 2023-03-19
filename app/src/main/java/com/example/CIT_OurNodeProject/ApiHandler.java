@@ -69,8 +69,9 @@ public class ApiHandler {
     }
 
     // For server:
-    public String requestHandler(String requestString) {
-        Request request = readHttpRequest(requestString);
+//    public String requestHandler(String requestString) {
+    public String requestHandler(Request request) {
+//        Request request = readHttpRequest(requestString);
         String answer = "";
 
         switch (request.path.toLowerCase()) {
@@ -167,7 +168,24 @@ public class ApiHandler {
         //
     }
 
-    public void checkResponse(String resp){
+
+    public boolean checkResponse(String resp) {
+//        Request request = new Request();
+//        request.fromString(req);
+
+
+        Request request = activity.latestRequest;
+
+        Response response = new Response();
+        response.fromString(resp);
+
+        if (response.status.contains("202")) {
+            return true;
+        }
+        return false;
+    }
+
+    public void checkResponse2(String resp){
 //        Request request = new Request();
 //        request.fromString(req);
 
@@ -200,12 +218,11 @@ public class ApiHandler {
 
                     String requestIp;
                     int phonebookNumber = activity.latestRequest.requestNumber  % 3 ;
-                    System.out.println("mod: " + phonebookNumber);
                     if (phonebookNumber == 2 && activity.latestRequest.requestNumber >= 2){
     //                    if (phonebookNumber == 2 ){
                         activity.makeRequest(node.phoneBookLeft.IPs.get(2), getPhonebook());
 
-                        System.out.println(activity.latestRequest.requestNumber + "      " + "response.body bitch " + response.body + "    " );
+
 
                     }
 

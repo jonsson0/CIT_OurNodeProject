@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     public void makeRequest(String ip, String requestString){
-        System.out.println("--------------------------------------------------AUTO ---------SEND REQUEST----------------------------------------" );
+        System.out.println("--------------------------------------------------makeRequest----------------------------------------" );
 //        latestRequest = requestString;
         REMOTE_IP_ADDRESS = ip;
         MyClientThread thread = new MyClientThread();
@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         sendRequest.setText("Resend req");
     }
     public void makeRequest(String ip, Request requestString){
-        System.out.println("--------------------------------------------------AUTO ---------SEND REQUEST----------------------------------------" );
+        System.out.println("--------------------------------------------------makeRequest----------------------------------------" );
         latestRequest = requestString;
         REMOTE_IP_ADDRESS = ip;
         MyClientThread thread = new MyClientThread();
@@ -233,18 +233,38 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 //Run conversation
                 String str = (String) instream.readUTF();
 
-//                Request requestFromClient = apiHandler.readHttpRequest(str);
+                Request requestFromClient = apiHandler.readHttpRequest(str);
 
-//                sUpdate("Client " + number + " says: " + requestFromClient.toString() + "\n-----------------------------------------------------------");
+                System.out.println("Client " + number + " says: " + requestFromClient.toString() + "\n-----------------------------------------------------------");
+
                 String answer = "";
-                answer = apiHandler.requestHandler(str);
+//                answer = apiHandler.requestHandler(str);
+                answer = apiHandler.requestHandler(requestFromClient);
+                boolean hasGottenData = false;
+
+                while(!hasGottenData) {
+                    for (String IP: node.phoneBookLeft.IPs)
+                    {
+                        if(apiHandler.checkResponse(str)) {
+                            hasGottenData = true;
+                            break;
+                        }
+                        String newRequest = apiHandler.getPhonebook();
+                        makeRequest(IP, newRequest);
+                    }
+                    if(hasGottenData) {
+                        break;
+                    }
+
+
+                }
                 apiHandler.checkResponse(str);
                 sUpdate(answer + "\n-----------------------------------------------------------");
 
                 // open new connection when needed. Like with addData requests
 
 
-//                sUpdate("Reply to client " + number + ": " + answer + "\n-----------------------------------------------------------");
+                System.out.println("Reply to client " + number + ": " + answer + "\n-----------------------------------------------------------");
                 outstream.writeUTF(answer);
                 outstream.flush();
                 waitABit();
@@ -274,15 +294,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     Request requestFromClient = apiHandler.readHttpRequest(str);
 
-                    sUpdate("Client " + number + " says: " + requestFromClient.toString());
+                    System.out.println("Client " + number + " says: " + requestFromClient.toString());
                     String answer = "";
 
-                    answer = apiHandler.requestHandler(str);
+                    answer = apiHandler.requestHandler(requestFromClient);
+//                    answer = apiHandler.requestHandler(str);
 
                     // open new connection when needed. Like with addData requests
 
 
-                    sUpdate("Reply to client " + number + ": " + answer);
+                    System.out.println("Reply to client " + number + ": " + answer);
                     outstream.writeUTF(answer);
                     outstream.flush();
                     waitABit();
