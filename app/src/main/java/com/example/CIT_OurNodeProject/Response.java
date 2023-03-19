@@ -5,37 +5,29 @@ import org.json.JSONObject;
 
 public class Response {
     public String status;
-    public String body;
+    public JSONObject body;
 
-    public void fromString(String responseString) {
-        JSONObject json = null;
+    public Response(String requestString) {
+
         try {
+            JSONObject json = new JSONObject(requestString);
+            JSONObject jsonBody = new JSONObject(json.getString("Body"));
 
-            json = new JSONObject(responseString);
-            this.status = json.getString("method");
-            this.body = json.getString("body");
-
+            this.status = json.getString("Status");
+            this.body = jsonBody;
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
     }
 
-
-    public JSONObject toJson(String status, String body) {
-        JSONObject json = new JSONObject();
+    public Response() {
         try {
-            json.put("header", "HTTP/1.1");
-            json.put("status", status);
-            json.put("body", body);
-        } catch (JSONException e) {
+            JSONObject json = new JSONObject();
+
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return json;
     }
-
-
-
-
 
     public String toString(){
         return( "Header: HTTP/1.1\n" +

@@ -21,7 +21,7 @@ public class Node {
     }
 
     public void init(String IP, ApiHandler apiHandler) {
-        apiHandler.createHttpRequestAsString("get", "getPhoneBook", "");
+
     }
 
     public void addDataFromString(String inputString) {

@@ -177,13 +177,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 while (carryOn) {
                     String str = (String) instream.readUTF();
 
+                    System.out.println("TESTING HERE TESTING HERE TESTING HERE TESTING HERE");
+                    System.out.println(str);
+
                     Request requestFromClient = apiHandler.readHttpRequest(str);
+
+
+
+                    System.out.println("123123123123123123");
+                    System.out.println(requestFromClient.toString());
 
                     sUpdate("Client " + number + " says: " + requestFromClient.toString());
 
                     String answer = "";
 
-                    answer = apiHandler.requestHandler(str);
+                    Response response = apiHandler.requestHandler(requestFromClient);
+
+                    answer = response.toString();
 
                     sUpdate("Reply to client " + number + ": " + answer);
                     outstream.writeUTF(answer);
@@ -237,7 +247,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     JSONObject innerJson = new JSONObject();
 
 
-
+                    /*
                     try {
                         innerJson.put("Id", "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3" );
                         innerJson.put("Value", "");
@@ -253,12 +263,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     } catch (JSONException e) {
                         throw new RuntimeException(e);
                     }
+                    */
 
-                    String message = apiHandler.getData("123");
+                    // just an empty json
+                    JSONObject jsonTest = new JSONObject();
+                    try {
+                        jsonTest.put("Id", "test" );
+                    } catch (JSONException e) {
+                        throw new RuntimeException(e);
+                    }
 
-                   // String message = apiHandler.createHttpRequestAsString("get", "getData", json.toString());
+                    Request request = new Request("get", "getId", jsonTest);
+
+                    String message = request.toString();
+
+                    System.out.println("SOMSOMSOMSOMSOM");
+
+                    System.out.println(message.charAt(15));
+
                     System.out.println("66666666666666");
-                    System.out.println(message);
+
                     out.writeUTF(message);
                     out.flush();
                     cUpdate("I said:      " + message);
