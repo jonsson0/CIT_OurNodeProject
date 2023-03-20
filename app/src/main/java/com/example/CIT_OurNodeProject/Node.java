@@ -1,5 +1,7 @@
 package com.example.CIT_OurNodeProject;
 
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 
 public class Node {
@@ -32,7 +34,5 @@ public class Node {
     public void contactNeighbor(String IP, String path) {
 
     }
-
-
 
 }

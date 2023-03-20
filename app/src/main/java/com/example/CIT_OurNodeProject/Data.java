@@ -6,12 +6,12 @@ public class Data {
 
     Random numGen = new Random();
     String id;
-    String data;
+    String value;
 
-    public Data(String data) {
+    public Data(String value) {
 
-        this.id =  hash(data);
-        this.data = data;
+        this.id =  hash(value);
+        this.value = value;
     }
 
     public String hash(String data) {

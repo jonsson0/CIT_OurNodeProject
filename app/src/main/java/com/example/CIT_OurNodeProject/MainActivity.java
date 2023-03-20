@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -25,6 +26,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -82,9 +84,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         node = new Node(THIS_IP_ADDRESS);
 
         Data data = new Data("123");
+        Data data1 = new Data("1234");
+
 
         node.listOfData.add(data);
-      //  System.out.println(data.id);
+        node.listOfData.add(data1);
+        //  System.out.println(data.id);
 
         node.phoneBookLeft.IPs.add("192.168.0.104");
         node.phoneBookLeft.IPs.add("192.168.0.104");
@@ -175,23 +180,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 //Run conversation
                 while (carryOn) {
-                    String str = (String) instream.readUTF();
+                    String requestString = (String) instream.readUTF();
 
-                    System.out.println("TESTING HERE TESTING HERE TESTING HERE TESTING HERE");
-                    System.out.println(str);
+                    System.out.println("Recived requestString:");
+                    System.out.println(requestString);
 
-                    Request requestFromClient = apiHandler.readHttpRequest(str);
-
-
-
-                    System.out.println("123123123123123123");
-                    System.out.println(requestFromClient.toString());
+                    Request requestFromClient = new Request(requestString);
 
                     sUpdate("Client " + number + " says: " + requestFromClient.toString());
 
                     String answer = "";
-
-                    Response response = apiHandler.requestHandler(requestFromClient);
+                    Response response = apiHandler.requestHandler(requestFromClient, REMOTE_IP_ADDRESS);
 
                     answer = response.toString();
 
@@ -243,45 +242,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 while (carryOn) {
 
-                    JSONObject json = new JSONObject();
-                    JSONObject innerJson = new JSONObject();
 
-
-                    /*
+                    // building json body for the test request:
+                    JSONObject jsonBody = new JSONObject();
                     try {
-                        innerJson.put("Id", "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3" );
-                        innerJson.put("Value", "");
-                        innerJson.put("IsParent", "false" );
-                        innerJson.put("IsGlobal", "false" );
+                        jsonBody.put("Side", "left" );
                     } catch (JSONException e) {
                         throw new RuntimeException(e);
                     }
-
-                    try {
-                        json.put("Data", innerJson);
-
-                    } catch (JSONException e) {
-                        throw new RuntimeException(e);
-                    }
-                    */
-
-                    // just an empty json
-                    JSONObject jsonTest = new JSONObject();
-                    try {
-                        jsonTest.put("Id", "test" );
-                    } catch (JSONException e) {
-                        throw new RuntimeException(e);
-                    }
-
-                    Request request = new Request("get", "getId", jsonTest);
+                    Request request = new Request("get", "NewNeighbor", jsonBody);
 
                     String message = request.toString();
-
-                    System.out.println("SOMSOMSOMSOMSOM");
-
-                    System.out.println(message.charAt(15));
-
-                    System.out.println("66666666666666");
 
                     out.writeUTF(message);
                     out.flush();
