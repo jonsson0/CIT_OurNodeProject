@@ -179,8 +179,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         } else if (view == sendRequest) {
             System.out.println("----------------------------------------------------------------------SEND REQUEST----------------------------------------" );
-            Request reqstring = apiHandler.requestGetData("1234");
-//            String reqstring = apiHandler.getId();
+//            Request reqstring = apiHandler.requestGetData("1234");
+            String reqstring = apiHandler.getId();
 //            String reqstring = apiHandler.requestAddData(new Data("1233"), true, false);
             makeRequest(REMOTE_IP_ADDRESS, reqstring);
 
@@ -309,6 +309,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
     }
+
+
+
+
+
+
     // !!! Returns 0.0.0.0 on emulator
     //Modified from https://www.tutorialspoint.com/sending-and-receiving-data-with-sockets-in-android
     private String getLocalIpAddress() {
@@ -327,6 +333,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     class MyClientThread implements Runnable {
         String message;
+
+        DataInputStream instream;
+
+        DataOutputStream outstream;
+        Socket connectionToServer;
+
+
         @Override
         public void run() {
 
@@ -342,54 +355,75 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 JSONObject json = new JSONObject();
                 JSONObject innerJson = new JSONObject();
 
+                Request requestFromClient = apiHandler.readHttpRequest(message);
 
-                boolean hasGottenData = false;
-                PhoneBook copyPhonebook = node.phoneBookLeft.copy();
-                String newMessage;
+                Socket connectionToServer = new Socket(REMOTE_IP_ADDRESS, 4444);
+                instream = new DataInputStream(connectionToServer.getInputStream());
+                outstream = new DataOutputStream(connectionToServer.getOutputStream());
 
-                while(!hasGottenData) {
+                String messageFromServer = instream.readUTF();
+                Response response = apiHandler.readHttpResponse(messageFromServer);
 
-                    String IP = copyPhonebook.IPs.get(0);
-                    Socket connectionToServer = new Socket(IP, 4444);
-                    DataInputStream instream = new DataInputStream(connectionToServer.getInputStream());
-                    DataOutputStream out = new DataOutputStream(connectionToServer.getOutputStream());
-                    if(copyPhonebook.IPs.size()==1){
-                        newMessage=apiHandler.getPhonebook();
-                        out.writeUTF(newMessage);
-                        out.flush();
-                        String messageFromServer = instream.readUTF();
-                        Response response = apiHandler.readHttpResponse(messageFromServer);
-                        String stripped = null;
-                        try {
-                            stripped = response.body.getString("leftNeighbors").replaceAll("[\\[\\](){} ]","");
-                        } catch (JSONException e) {
-                            throw new RuntimeException(e);
-                        };
+                if (apiHandler.checkResponse(messageFromServer)){
+
+                }
+
+                if (requestFromClient.method == "getdata"){
 
 
-                        String[] splitList = stripped.split(",");
-                        for (String ip:
-                                splitList) {
-                            copyPhonebook.IPs.add(ip);
+                    boolean hasGottenData = false;
+                    PhoneBook copyPhonebook = node.phoneBookLeft.copy();
+                    String newMessage;
+
+                    while(!hasGottenData) {
+
+                        String IP = copyPhonebook.IPs.get(0);
+                        connectionToServer = new Socket(IP, 4444);
+                        instream = new DataInputStream(connectionToServer.getInputStream());
+                        outstream = new DataOutputStream(connectionToServer.getOutputStream());
+                        messageFromServer = instream.readUTF();
+                        response = apiHandler.readHttpResponse(messageFromServer);
+                        apiHandler.checkResponse(messageFromServer);
+
+
+                        if(copyPhonebook.IPs.size()==1){
+                            newMessage=apiHandler.getPhonebook();
+                            outstream.writeUTF(newMessage);
+                            outstream.flush();
+                            messageFromServer = instream.readUTF();
+                            response = apiHandler.readHttpResponse(messageFromServer);
+                            String stripped = null;
+                            try {
+                                stripped = response.body.getString("leftNeighbors").replaceAll("[\\[\\](){} ]","");
+                            } catch (JSONException e) {
+                                throw new RuntimeException(e);
+                            };
+                            // if ip == our ip, we need to stop, but first after finishing our phonebook
+
+                            String[] splitList = stripped.split(",");
+                            for (String ip:
+                                    splitList) {
+                                copyPhonebook.IPs.add(ip);
+                            }
+                            System.out.println("message from server" + copyPhonebook.IPs);
+
                         }
-                        System.out.println("message from server" + copyPhonebook.IPs);
+                        else {
+                            outstream.writeUTF(message);
+                            outstream.flush();
+                            System.out.println();
+                            messageFromServer = instream.readUTF();
+                            System.out.println("Response from server: " + messageFromServer);
 
-                    }
-                    else {
-                        out.writeUTF(message);
-                        out.flush();
-                        System.out.println();
-                        String messageFromServer = instream.readUTF();
-                        System.out.println("Response from server: " + messageFromServer);
-
-                        if (apiHandler.checkResponse(messageFromServer)) {
-                            hasGottenData = true;
-                            break;
+                            if (apiHandler.checkResponse(messageFromServer)) {
+                                hasGottenData = true;
+                                break;
+                            }
                         }
-                    }
-                    connectionToServer.close();
-                    copyPhonebook.IPs.remove(IP);
-                    System.out.println("Phonebook: " + copyPhonebook.IPs);
+                        }
+                        connectionToServer.close();
+                        copyPhonebook.IPs.remove(REMOTE_IP_ADDRESS);
+                        System.out.println("Phonebook: " + copyPhonebook.IPs);
 
                 }
 
@@ -419,6 +453,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
         }//run()
+
+
+        private void gettingData(){
+
+        }
+        public void runConnection(){
+            //                Socket connectionToServer = new Socket(REMOTE_IP_ADDRESS, 4444);
+
+            try {
+                connectionToServer = new Socket(REMOTE_IP_ADDRESS, 4444);
+                instream = new DataInputStream(connectionToServer.getInputStream());
+                outstream = new DataOutputStream(connectionToServer.getOutputStream());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        private void endConnection(){
+
+        }
+
+
+
         public void run2() {
 
             try {
