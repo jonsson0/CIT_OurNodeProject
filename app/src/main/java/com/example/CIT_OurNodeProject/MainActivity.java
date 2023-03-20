@@ -26,6 +26,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -250,7 +251,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     } catch (JSONException e) {
                         throw new RuntimeException(e);
                     }
-                    Request request = new Request("get", "NewNeighbor", jsonBody);
+                    Request request = new Request("get", "getId", jsonBody);
+
+                    System.out.println(request.header);
 
                     String message = request.toString();
 

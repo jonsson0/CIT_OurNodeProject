@@ -25,7 +25,6 @@ public class ApiHandler {
         return response;
     }
 
-
     // For server:
     public Response requestHandler(Request request, String IP) {
         Response response = new Response();

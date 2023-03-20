@@ -15,6 +15,7 @@ public class Request {
             JSONObject json = new JSONObject(requestString);
             JSONObject jsonBody = new JSONObject(json.getString("Body"));
 
+            this.header = json.getString("Header");
             this.method = json.getString("Method");
             this.path = json.getString("Path");
             this.body = jsonBody;
@@ -33,7 +34,7 @@ public class Request {
     public String toString() {
         JSONObject requestJson = new JSONObject();
         try {
-            requestJson.put("Header", header);
+            requestJson.put("Header", "HTTP/1.1");
             requestJson.put("Method", method);
             requestJson.put("Path", path);
             requestJson.put("Body", body);
