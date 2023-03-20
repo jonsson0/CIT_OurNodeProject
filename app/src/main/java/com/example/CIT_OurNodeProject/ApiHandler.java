@@ -94,6 +94,7 @@ public class ApiHandler {
                             System.out.println("3");
                             DataOutputStream outstream = new DataOutputStream(connectionToServer.getOutputStream());
                             System.out.println("4");
+                            System.out.println(instream.readUTF());
                             String messageFromServer = instream.readUTF();
                             System.out.println("5");
                             response = new Response(messageFromServer);
@@ -152,6 +153,7 @@ public class ApiHandler {
                             System.out.println("Phonebook: " + copyPhonebook.IPs );
 
                         } catch (IOException e) {
+                            System.out.println(e.toString());
                             throw new RuntimeException(e);
                         }
                     }
