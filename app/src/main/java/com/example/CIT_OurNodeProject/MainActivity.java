@@ -180,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 DataOutputStream outstream = new DataOutputStream(client.getOutputStream());
 
                 //Run conversation
-                while (carryOn) {
+//                while (carryOn) {
                     String requestString = (String) instream.readUTF();
 
                     System.out.println("Recived requestString:");
@@ -198,14 +198,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     sUpdate("Reply to client " + number + ": " + answer);
                     outstream.writeUTF(answer);
                     outstream.flush();
-                    waitABit();
-                }
+//                    waitABit();
+//                }
                 //Closing everything down
-                client.close();
                 sUpdate("SERVER: Remote client " + number + " socket closed");
-                instream.close();
                 sUpdate("SERVER: Remote client " + number + " inputstream closed");
+                instream.close();
                 outstream.close();
+                client.close();
                 sUpdate("SERVER: Remote client  " + number + "outputstream closed");
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -235,13 +235,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             try {
                 cUpdate("CLIENT: starting client socket ");
-                Socket connectionToServer = new Socket(REMOTE_IP_ADDRESS, 4444);
                 cUpdate("CLIENT: client connected ");
+                Socket connectionToServer = new Socket(REMOTE_IP_ADDRESS, 4444);
+
 
                 DataInputStream instream = new DataInputStream(connectionToServer.getInputStream());
                 DataOutputStream out = new DataOutputStream(connectionToServer.getOutputStream());
 
-                while (carryOn) {
+//                while (carryOn) {
 
 
 
@@ -259,22 +260,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     String message = request.toString();
 
                     out.writeUTF(message);
-                    out.flush();
                     cUpdate("I said:      " + message);
                     String messageFromServer = instream.readUTF();
+                System.out.println("I said:      " + messageFromServer);
 
                     Response response = new Response(messageFromServer);
+                    instream.close();
+                    out.close();
+                    connectionToServer.close();
+/*
 
-                    apiHandler.respondHandler(request, response);
+* */
+
+                apiHandler.respondHandler(request, response);
 
                     cUpdate("Server says: " + messageFromServer);
-                    waitABit();
-                }
-                instream.close();
+//                    waitABit();
+//                }
                 cUpdate("CLIENT: closed inputstream");
-                out.close();
                 cUpdate("CLIENT: closed outputstream");
-                connectionToServer.close();
                 cUpdate("CLIENT: closed socket");
 
             } catch (IOException e) {

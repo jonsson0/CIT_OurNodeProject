@@ -86,6 +86,7 @@ public class ApiHandler {
                     while (!hasGottenData) {
                         System.out.println("1");
                         String IP = copyPhonebook.IPs.get(0);
+                        System.out.println(" the IP is: " + IP);
                         Socket connectionToServer;
                         try {
                             connectionToServer = new Socket(IP, 4444);
@@ -94,12 +95,10 @@ public class ApiHandler {
                             System.out.println("3");
                             DataOutputStream outstream = new DataOutputStream(connectionToServer.getOutputStream());
                             System.out.println("4");
-                            System.out.println(instream.readUTF());
-                            String messageFromServer = instream.readUTF();
-                            System.out.println("5");
-                            response = new Response(messageFromServer);
+//                            System.out.println(instream.readUTF());
+//                            String messageFromServer = instream.readUTF();
+//                            response = new Response(messageFromServer);
 
-                            System.out.println("2");
                             /*
                             if (node.IP.equals(copyPhonebook.IPs.get(0))) {
                                 response = new Response();
@@ -111,22 +110,23 @@ public class ApiHandler {
                             if (copyPhonebook.IPs.size() == 1) {
                                 request = new Request("get", "getPhoneBook", new JSONObject());
                                 String newMessage = request.toString();
-                                System.out.println("3");
+                                System.out.println("5");
                                 outstream.writeUTF(newMessage);
                                 outstream.flush();
-                                messageFromServer = instream.readUTF();
+                                String messageFromServer = instream.readUTF();
                                 response = new Response(messageFromServer);
                                 JSONArray jsonPhoneBookCopy;
                                 try {
                                     jsonPhoneBookCopy = response.body.getJSONArray("LeftNeighbors");
                                     for (int i = 0; i < jsonPhoneBookCopy.length(); i++) {
-                                        copyPhonebook.IPs.add(jsonPhoneBookCopy.getString(i));
+                                        copyPhonebook.IPs.add(jsonPhoneBookCopy.getJSONObject(i).getString("IP"));
+//                                        System.out.println(" - " + copyPhonebook.IPs.get());
                                     }
                                 } catch (JSONException e) {
                                     throw new RuntimeException(e);
                                 }
 
-                                System.out.println("4");
+                                System.out.println("6");
                             } else {
                                 JSONObject jsonBody = new JSONObject();
                                 try {
@@ -135,11 +135,11 @@ public class ApiHandler {
                                     throw new RuntimeException(e);
                                 }
                                 request = new Request("get", "getData", jsonBody);
-                                System.out.println("5");
+                                System.out.println("7");
                                 outstream.writeUTF(originalRequest.toString());
                                 outstream.flush();
                                 System.out.println();
-                                messageFromServer = instream.readUTF();
+                                String messageFromServer = instream.readUTF();
                                 System.out.println("Response from server: " + messageFromServer);
 
                                 response = new Response(messageFromServer);
@@ -149,11 +149,11 @@ public class ApiHandler {
                                 }
                             }
                             connectionToServer.close();
-                            copyPhonebook.IPs.remove(copyPhonebook.IPs.get(0));
+                            copyPhonebook.IPs.remove(0);
                             System.out.println("Phonebook: " + copyPhonebook.IPs );
 
                         } catch (IOException e) {
-                            System.out.println(e.toString());
+                            System.out.println("problem is: " + e.toString());
                             throw new RuntimeException(e);
                         }
                     }
