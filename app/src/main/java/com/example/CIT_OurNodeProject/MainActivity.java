@@ -92,13 +92,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         node.listOfData.add(data1);
         //  System.out.println(data.id);
 
-        node.phoneBookLeft.IPs.add("192.168.0.104");
-        node.phoneBookLeft.IPs.add("192.168.0.104");
-        node.phoneBookLeft.IPs.add("192.168.0.104");
+        node.phoneBookLeft.IPs.add(THIS_IP_ADDRESS);
+        node.phoneBookLeft.IPs.add(THIS_IP_ADDRESS);
+        node.phoneBookLeft.IPs.add(THIS_IP_ADDRESS);
 
-        node.phoneBookRight.IPs.add("192.168.0.104");
-        node.phoneBookRight.IPs.add("192.168.0.104");
-        node.phoneBookRight.IPs.add("192.168.0.104");
+        node.phoneBookRight.IPs.add(THIS_IP_ADDRESS);
+        node.phoneBookRight.IPs.add(THIS_IP_ADDRESS);
+        node.phoneBookRight.IPs.add(THIS_IP_ADDRESS);
 
 
 
@@ -244,14 +244,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 while (carryOn) {
 
 
+
                     // building json body for the test request:
                     JSONObject jsonBody = new JSONObject();
                     try {
-                        jsonBody.put("Side", "left" );
+                        jsonBody.put("Id", "3" );
                     } catch (JSONException e) {
                         throw new RuntimeException(e);
                     }
-                    Request request = new Request("get", "getId", jsonBody);
+                    Request request = new Request("get", "getData", jsonBody);
 
                     System.out.println(request.header);
 
@@ -261,6 +262,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     out.flush();
                     cUpdate("I said:      " + message);
                     String messageFromServer = instream.readUTF();
+
+                    Response response = new Response(messageFromServer);
+
+                    apiHandler.respondHandler(request, response);
+
                     cUpdate("Server says: " + messageFromServer);
                     waitABit();
                 }

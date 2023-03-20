@@ -20,13 +20,13 @@ public class Response {
         }
     }
 
-    public Response() {
-        try {
-            JSONObject json = new JSONObject();
+    public Response(String status, JSONObject body) {
+        this.status = status;
+        this.body = body;
+    }
 
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public Response() {
+
     }
 
     public String toString() {
