@@ -84,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         node = new Node(THIS_IP_ADDRESS);
 
-        Data data = new Data("123", true);
+        Data data = new Data("3", true);
         Data data1 = new Data("1234",true);
 
 
@@ -244,16 +244,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 //                while (carryOn) {
 
+                 //  Request request = apiHandler.buildRequestToGetData("3");
 
-
-                    // building json body for the test request:
-                    JSONObject jsonBody = new JSONObject();
-                    try {
-                        jsonBody.put("Id", "3" );
-                    } catch (JSONException e) {
-                        throw new RuntimeException(e);
-                    }
-                    Request request = new Request("get", "getData", jsonBody);
+                Request request = apiHandler.buildRequestToAddData("321", true);
 
                     System.out.println(request.header);
 
