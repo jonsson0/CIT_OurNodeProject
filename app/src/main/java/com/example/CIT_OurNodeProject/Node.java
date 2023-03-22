@@ -26,13 +26,25 @@ public class Node {
 
     }
 
-    public void addDataFromString(String inputString) {
-        Data data = new Data(inputString);
+    public void addDataFromString(String inputString, Boolean isParent) {
+        Data data = new Data(inputString, isParent);
         listOfData.add(data);
     }
+
 
     public void contactNeighbor(String IP, String path) {
 
     }
+    public boolean deleteDataLocally(String Value) {
+        for (int i = 0; i < listOfData.size(); i++) {
+            //if our node has the data
+            if (listOfData.get(i).equals(Value)) {
+                listOfData.remove(listOfData.get(i));
+                return true;
+            }
+        }
+        return false;
+    }
+
 
 }

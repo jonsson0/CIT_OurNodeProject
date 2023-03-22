@@ -84,8 +84,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         node = new Node(THIS_IP_ADDRESS);
 
-        Data data = new Data("123");
-        Data data1 = new Data("1234");
+        Data data = new Data("123", true);
+        Data data1 = new Data("1234",true);
 
 
         node.listOfData.add(data);
@@ -283,6 +283,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             } catch (IOException e) {
                 e.printStackTrace();
+                throw new RuntimeException(e);
+            } catch (JSONException e) {
                 throw new RuntimeException(e);
             }
 

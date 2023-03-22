@@ -57,7 +57,7 @@ public class ApiHandler {
         return response;
     }
 
-    public Response respondHandler(Request request, Response response) {
+    public Response respondHandler(Request request, Response response) throws JSONException, IOException {
 
         switch (request.path.toLowerCase()) {
             case "getid":
@@ -80,7 +80,7 @@ public class ApiHandler {
                     PhoneBook copyPhonebook = node.phoneBookLeft.copy();
 
                     System.out.println("THIS IS THE IPS:");
-                    for (String IP: copyPhonebook.IPs) {
+                    for (String IP : copyPhonebook.IPs) {
                         System.out.println(IP);
                     }
                     while (!hasGottenData) {
@@ -150,7 +150,7 @@ public class ApiHandler {
                             }
                             connectionToServer.close();
                             copyPhonebook.IPs.remove(0);
-                            System.out.println("Phonebook: " + copyPhonebook.IPs );
+                            System.out.println("Phonebook: " + copyPhonebook.IPs);
 
                         } catch (IOException e) {
                             System.out.println("problem is: " + e.toString());
@@ -158,8 +158,11 @@ public class ApiHandler {
                         }
                     }
                 }
-            break;
+                break;
             case "adddata":
+
+
+                AddData(request);
 
                 break;
             default:
@@ -168,11 +171,6 @@ public class ApiHandler {
         }
         return response;
     }
-
-
-
-
-
 
 
     // for client:
@@ -190,13 +188,13 @@ public class ApiHandler {
         response.body = jsonBody;
         return response;
     }
+
     public Response buildResponseToNewNeighbor(Response response, String IP) {
         response.status = "200 OK";
 
         // creating the json body for the response:
         JSONObject jsonBody = new JSONObject();
         JSONArray jsonArrayOfData = new JSONArray();
-
 
 
         try {
@@ -237,13 +235,13 @@ public class ApiHandler {
         JSONArray jsonPhoneBookLeft = new JSONArray();
         try {
 
-            for (String IP: phoneBookRight) {
+            for (String IP : phoneBookRight) {
                 JSONObject ipInPhoneBook = new JSONObject();
                 ipInPhoneBook.put("Id", "Id???");
                 ipInPhoneBook.put("IP", IP);
                 jsonPhoneBookRight.put(ipInPhoneBook);
             }
-            for (String IP: phoneBookLeft) {
+            for (String IP : phoneBookLeft) {
                 JSONObject ipInPhoneBook = new JSONObject();
                 ipInPhoneBook.put("Id", "Id???");
                 ipInPhoneBook.put("IP", IP);
@@ -257,14 +255,15 @@ public class ApiHandler {
             throw new RuntimeException(e);
         }
         response.body = jsonBody;
-        return  response;
+        return response;
     }
+
     public Response buildResponseToGetData(Response response, Request request) {
 
         String id;
         try {
             id = request.body.getString("Id");
-          //  hashedValue = SHA256.toHexString(SHA256.getSHA(value));
+            //  hashedValue = SHA256.toHexString(SHA256.getSHA(value));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -286,16 +285,131 @@ public class ApiHandler {
                 }
                 response.status = "200 OK";
                 response.body = jsonBody;
-            }else {
+            } else {
                 response.status = "404 Not Found";
                 response.body = new JSONObject();
             }
         }
         return response;
     }
-    public Response AddData(Response response) {
 
+    public Response DeleteData(Request request) throws IOException, JSONException {
+        JSONObject RequestData = request.body.getJSONObject("data");
+        String Value = RequestData.getString("Value");
+        Response response = new Response();
+
+        //delete own data if we have it
+        if (RequestData.getBoolean("isParent")) {
+            //if parent ask us to delete, we delete if we can. Will always give 200 even if we dont hold data
+            node.deleteDataLocally(Value);
+            response = new Response("200 - deleted locally");
+        } else {
+            for (int i = 0; i < node.listOfData.size(); i++) {
+                //if our node has the data
+                if (node.listOfData.get(i).equals(Value)) {
+                    if (node.listOfData.get(i).isParent == true) {
+                        //IF we are parent of the data, ask children to delete the data
+                        //create request for children with isParent=True
+                        Request requestsForChildren = makeRequestForParentToCallDeleteOnChildren(request);
+                        //send requests to children
+                        Response responseLeft = sendRequestToNeighbor(node.neighborLeft.IP, requestsForChildren);
+                        Response responseRight = sendRequestToNeighbor(node.neighborRight.IP, requestsForChildren);
+                        //delete locally
+                        node.deleteDataLocally(Value);
+                        //delete from neighbor representation objects.
+                        node.neighborRight.deleteDataLocally(Value);
+                        node.neighborLeft.deleteDataLocally(Value);
+
+
+                        if (responseLeft.status == "200" && responseRight.status == "200") {
+                            response = new Response("200 - deleted locally and on children");
+                        } else {
+                            response = new Response("400 - unable to delete data from one or more children");
+                        }
+                    }
+                    //IF we are not the parent we should just pass the request along to a neighbor
+                    else {
+                         response = sendRequestToNeighbor(node.neighborLeft.IP, request);
+                    }
+                }
+            }
+        }
         return response;
+    }
+
+
+
+    private Request makeRequestForParentToCallDeleteOnChildren(Request request) throws JSONException {
+        JSONObject jsonBody = new JSONObject();
+        JSONObject RequestData = request.body.getJSONObject("data");
+
+        jsonBody.put("ID",RequestData.get("id"));
+        jsonBody.put("Value",RequestData.get("Value"));
+        jsonBody.put("isParent",true);
+
+        Request newRequest = new Request("get", request.path, jsonBody);
+        return newRequest;
+
+
+    }
+
+
+    public Response AddData(Request request) throws IOException, JSONException {
+
+        JSONObject RequestData=request.body.getJSONObject("data");
+        String Value= RequestData.getString("Value");
+        Boolean isParent=RequestData.getBoolean("isParent");
+
+        if (!isParent){
+            //if not parent
+            Data data = new Data(Value,Boolean.FALSE);
+            node.listOfData.add(data);
+            JSONObject responseBody=new JSONObject();
+            Response response =new Response("200", new JSONObject("{\"data\":\"Data added as child data to node\""));
+            return response;
+        } else if(isParent){
+            //Adds to own
+
+            Data data = new Data(Value,Boolean.TRUE);
+            node.listOfData.add(data);
+            //make new request with isParent=false
+            Request requestForNeighbor=createRequestForNeighborReplication(data,request);
+
+            //data for internal representation of neighbors data
+            Data dataForNeighbor = new Data(Value,Boolean.FALSE);
+            node.neighborLeft.listOfData.add(dataForNeighbor);
+            Response r1 =sendRequestToNeighbor(node.neighborLeft.IP,requestForNeighbor);
+            Response r2 =sendRequestToNeighbor(node.neighborLeft.IP,requestForNeighbor);
+            if (r1.status=="200"&& r2.status=="200"){
+                Response response =new Response("200", new JSONObject("{\"data\":\"Data added to parent and replicated to children\""));
+                return response;
+            }
+        }
+        Response response =new Response("400", new JSONObject("{\"data\":\"\""));
+        return response;
+
+    }
+
+    public  Response sendRequestToNeighbor(String IP, Request request) throws IOException {
+        Socket connectionToLeftNeighbor;
+        connectionToLeftNeighbor = new Socket(IP, 4444);
+        DataOutputStream outputStream = new DataOutputStream(connectionToLeftNeighbor.getOutputStream());
+        outputStream.writeUTF(request.toString());
+        connectionToLeftNeighbor.close();
+        Response response =new Response("200 Added to Parent");
+        return response;
+    }
+    public  Request createRequestForNeighborReplication(Data data, Request originalRequest) throws JSONException {
+        JSONObject jsonBody = new JSONObject();
+
+        jsonBody.put("ID",data.id);
+        jsonBody.put("Value",data.value);
+        jsonBody.put("isParent",false);
+        jsonBody.put("Data", jsonBody);
+        Request newRequest = new Request("get", originalRequest.path, originalRequest.body);
+        return newRequest;
+
+
     }
     public Response DeleteData(Response response) {
 
