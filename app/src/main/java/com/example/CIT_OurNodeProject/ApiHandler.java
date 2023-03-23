@@ -318,49 +318,46 @@ public class ApiHandler {
 
 
     public Response DeleteData(Request request) throws IOException, JSONException {
+
         JSONObject RequestData = request.body.getJSONObject("Data");
-        String Value = RequestData.getString("Value");
+        String id = RequestData.getString("Id");
         Response response = new Response();
 
         //delete own data if we have it
         if (RequestData.getBoolean("isParent")) {
-            //if parent ask us to delete, we delete if we can. Will always give 200 even if we dont hold data
-            node.deleteDataLocally(Value);
-            response = new Response("200 - deleted locally");
+            // if parent ask us to delete, we delete if we can. Will always give 200 even if we dont hold data
+            boolean isDeleted = node.deleteDataLocally(id);
+
+            // IF we are parent of the data, ask children to delete the data
+            // create request for children with isParent=True
+            Request requestForChild = generateRequestForChildToDelete(request);
+            // send requests to children
+            Response responseLeft = sendRequestToNeighbor(node.neighborLeft.IP, requestForChild);
+            Response responseRight = sendRequestToNeighbor(node.neighborRight.IP, requestForChild);
+
+            if (responseLeft.status == "200" && responseRight.status == "200") {
+                response = new Response("200", new JSONObject());
+            } else {
+                response = new Response("400", new JSONObject());
+            }
+
+            if (isDeleted) {
+                response = new Response("200 - deleted", new JSONObject());
+            } else {
+                response = new Response("404 Not Found - I dont have it", new JSONObject());
+            }
         } else {
-            for (int i = 0; i < node.listOfData.size(); i++) {
-                //if our node has the data
-                if (node.listOfData.get(i).equals(Value)) {
-                    if (node.listOfData.get(i).isParent == true) {
-                        //IF we are parent of the data, ask children to delete the data
-                        //create request for children with isParent=True
-                        Request requestsForChildren = makeRequestForParentToCallDeleteOnChildren(request);
-                        //send requests to children
-                        Response responseLeft = sendRequestToNeighbor(node.neighborLeft.IP, requestsForChildren);
-                        Response responseRight = sendRequestToNeighbor(node.neighborRight.IP, requestsForChildren);
-                        //delete locally
-                        node.deleteDataLocally(Value);
-                        //delete from neighbor representation objects.
-                        node.neighborRight.deleteDataLocally(Value);
-                        node.neighborLeft.deleteDataLocally(Value);
+            node.neighborRight.deleteDataLocally(id);
+            node.neighborLeft.deleteDataLocally(id);
 
 
-                        if (responseLeft.status == "200" && responseRight.status == "200") {
-                            JSONObject j=new JSONObject();
-                            j.put("Added", "True");
-                            response = new Response("200",j);
-                        } else {
-                            JSONObject k=new JSONObject();
-                            k.put("Added", "False");
-                            response = new Response("400", k);
-                        }
-                    }
+
                     //IF we are not the parent we should just pass the request along to a neighbor
                     else {
                          response = sendRequestToNeighbor(node.neighborLeft.IP, request);
                     }
-                }
-            }
+
+
         }
         return response;
     }
@@ -386,20 +383,17 @@ public class ApiHandler {
 
 
 
-    private Request makeRequestForParentToCallDeleteOnChildren(Request request) throws JSONException {
+    private Request generateRequestForChildToDelete(Request request) throws JSONException {
         JSONObject jsonBody = new JSONObject();
         JSONObject RequestData = request.body.getJSONObject("Data");
 
         jsonBody.put("ID",RequestData.get("id"));
         jsonBody.put("Value",RequestData.get("Value"));
-        jsonBody.put("isParent",true);
+        jsonBody.put("isParent",false);
 
         Request newRequest = new Request("get", request.path, jsonBody);
         return newRequest;
-
-
     }
-
 
     public Response buildResponseToAddData(Request request) throws IOException, JSONException {
 
@@ -410,8 +404,6 @@ public class ApiHandler {
         if (!isParent){
             //if not parent
             Data data = new Data(value,false);
-
-            // TODO Check what neighbor sent the data and add on correct side add the data
 
             String senderIP = requestData.getString("senderIP");
 
@@ -436,9 +428,6 @@ public class ApiHandler {
             // make new request with isParent=false
             Request requestForNeighbor = createRequestForNeighborReplication(data, request, node.IP);
 
-            // data for internal representation of neighbors data
-            Data dataForNeighbor = new Data(value, false);
-            node.neighborLeft.listOfData.add(dataForNeighbor);
             Response r1 = sendRequestToNeighbor(node.neighborLeft.IP,requestForNeighbor);
             System.out.println("PASSING ONTO FIRST CHILD" + requestForNeighbor.toString());
             Response r2 = sendRequestToNeighbor(node.neighborLeft.IP,requestForNeighbor);
@@ -456,25 +445,29 @@ public class ApiHandler {
     }
 
     public  Response sendRequestToNeighbor(String IP, Request request) throws IOException, JSONException {
+        Response response;
         try {
 
         Socket connectionToNeighbor;
         connectionToNeighbor = new Socket(IP, 4444);
         DataOutputStream outputStream = new DataOutputStream(connectionToNeighbor.getOutputStream());
         outputStream.writeUTF(request.toString());
+
+       // TODO: if we have time actaully get the response instead of making a "fake" one
+
         connectionToNeighbor.close();
 
-        DataInputStream instream = new DataInputStream(connectionToNeighbor.getInputStream());
+        // DataInputStream instream = new DataInputStream(connectionToNeighbor.getInputStream());
+            String value=request.body.getJSONObject("Data").getString("Value");
+            JSONObject responseObject=new JSONObject();
+            responseObject.put("Added",value);
+            response = new Response("200 OK", responseObject);
 
         }catch (Exception e){
-           Response response = new Response("400", new JSONObject());
+           response = new Response("400", new JSONObject());
 
         }
-        String value=request.body.getJSONObject("Data").getString("Value");
 
-        JSONObject responseObject=new JSONObject();
-        responseObject.put("Added",value);
-        Response response = new Response("200", responseObject);
         return response;
     }
     public  Request createRequestForNeighborReplication(Data data, Request originalRequest, String senderIP) throws JSONException {

@@ -41,10 +41,10 @@ public class Node {
             System.out.println(listOfData.get(i).value);
         }
     }
-    public boolean deleteDataLocally(String Value) {
+    public boolean deleteDataLocally(String id) {
         for (int i = 0; i < listOfData.size(); i++) {
             //if our node has the data
-            if (listOfData.get(i).equals(Value)) {
+            if (listOfData.get(i).id.equals(id)) {
                 listOfData.remove(listOfData.get(i));
                 return true;
             }
