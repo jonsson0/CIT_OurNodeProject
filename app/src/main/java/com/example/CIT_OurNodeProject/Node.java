@@ -22,6 +22,17 @@ public class Node {
         this.IP = IP;
     }
 
+
+
+    public boolean checkForData(String id){
+        for (Data data : listOfData) {
+            if (data.id.equals(id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void init(String IP, ApiHandler apiHandler) {
 
     }
