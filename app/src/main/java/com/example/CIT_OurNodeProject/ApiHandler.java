@@ -31,7 +31,7 @@ public class ApiHandler {
     }
 
     // What should happen if we get a request with any of these:
-    public Response requestHandler(Request request, String otherIP) {
+    public Response handleRequestFromClient(Request request, String clientIP) {
         Response response = new Response();
         switch (request.path.toLowerCase()) {
             case "getid":
@@ -40,7 +40,6 @@ public class ApiHandler {
             case "updatephonebook":
                 response = buildResponseToUpdatePhonebook(request);
                 break;
-
             case "getphonebook":
                 response = buildResponseToGetPhonebook();
                 break;
@@ -66,7 +65,7 @@ public class ApiHandler {
     }
 
     // What should happen when we get a response from any of these requests:
-    public Response respondHandler(Request request, Response response) throws JSONException, IOException {
+    public Response handleResponseFromServer(Request request, Response response, String clientIP) throws JSONException, IOException {
 
         switch (request.path.toLowerCase()) {
             case "getid":
@@ -82,9 +81,7 @@ public class ApiHandler {
                 getDataHandler(request, response);
                 break;
             case "adddata":
-
-                    buildResponseToAddData(request);
-
+                // Do nothing
                 break;
             default:
 
@@ -92,7 +89,6 @@ public class ApiHandler {
         }
         return response;
     }
-
 
     /** BUILDING RESPONSES **/
 
@@ -305,6 +301,7 @@ public class ApiHandler {
             innerJson.put("Id", hashedValue );
             innerJson.put("Value", value);
             innerJson.put("isParent", isParent);
+         //   innerJson.put("SenderIP", )
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
@@ -416,8 +413,14 @@ public class ApiHandler {
 
             // TODO Check what neighbor sent the data and add on correct side add the data
 
-            node.listOfData.add(data);
-           // node.neighborLeft.listOfData.add();
+            String senderIP = requestData.getString("senderIP");
+
+            if (senderIP.equals(node.neighborLeft.IP)) {
+                node.neighborLeft.listOfData.add(data);
+            } else if (senderIP.equals(node.neighborRight.IP)) {
+                node.neighborRight.listOfData.add(data);
+            }
+
             JSONObject responseBody=new JSONObject();
             responseBody.put("Neighbor","ADDEDSUCCESS");
             Response response =new Response("200", responseBody);
@@ -429,17 +432,18 @@ public class ApiHandler {
 
             Data data = new Data(value,true);
             node.listOfData.add(data);
-            //make new request with isParent=false
-            Request requestForNeighbor=createRequestForNeighborReplication(data, request);
 
-            //data for internal representation of neighbors data
-            Data dataForNeighbor = new Data(value,Boolean.FALSE);
+            // make new request with isParent=false
+            Request requestForNeighbor = createRequestForNeighborReplication(data, request, node.IP);
+
+            // data for internal representation of neighbors data
+            Data dataForNeighbor = new Data(value, false);
             node.neighborLeft.listOfData.add(dataForNeighbor);
             Response r1 = sendRequestToNeighbor(node.neighborLeft.IP,requestForNeighbor);
             System.out.println("PASSING ONTO FIRST CHILD" + requestForNeighbor.toString());
             Response r2 = sendRequestToNeighbor(node.neighborLeft.IP,requestForNeighbor);
             System.out.println("PASSING ONTO SECOND CHILD" + requestForNeighbor.toString());
-            JSONObject j=new JSONObject();
+            JSONObject j = new JSONObject();
             j.put("Data Replicated on neighbors", "True");
             if (r1.status=="200"&& r2.status=="200"){
                 Response response =new Response("OK 200", j);
@@ -473,7 +477,7 @@ public class ApiHandler {
         Response response = new Response("200", responseObject);
         return response;
     }
-    public  Request createRequestForNeighborReplication(Data data, Request originalRequest) throws JSONException {
+    public  Request createRequestForNeighborReplication(Data data, Request originalRequest, String senderIP) throws JSONException {
         JSONObject jsonBody=new JSONObject();
 
         JSONObject jsonData = new JSONObject();
@@ -481,8 +485,10 @@ public class ApiHandler {
         jsonData.put("ID",data.id);
         jsonData.put("Value",data.value);
         jsonData.put("isParent",false);
+        jsonData.put("senderIP", senderIP);
 
         jsonBody.put("Data",jsonData);
+
         Request newRequest = new Request("get", originalRequest.path, jsonBody);
         return newRequest;
 

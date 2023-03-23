@@ -13,9 +13,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -26,8 +24,6 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.sql.SQLOutput;
-import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -192,7 +188,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     String answer = "";
 
-                    Response response = apiHandler.requestHandler(requestFromClient, REMOTE_IP_ADDRESS);
+                    Response response = apiHandler.handleRequestFromClient(requestFromClient, REMOTE_IP_ADDRESS);
 
                     answer = response.toString();
 
@@ -247,10 +243,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                  //  Request request = apiHandler.buildRequestToGetData("3");
 
-                   // Request request = apiHandler.buildRequestToAddData("645745", true);
+                    Request request = apiHandler.buildRequestToAddData("645745", true);
              //   Request request = apiHandler.buildRequestToAddData("321", true);
 
-                Request request = apiHandler.buildRequestToUpdatePhoneBook(node.phoneBookLeft, "left");
+               // Request request = apiHandler.buildRequestToUpdatePhoneBook(node.phoneBookLeft, "left");
 
 
                     String message = request.toString();
@@ -268,7 +264,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 * */
 
-                apiHandler.respondHandler(request, response);
+                apiHandler.handleResponseFromServer(request, response, THIS_IP_ADDRESS);
 
                     cUpdate("Server says: " + messageFromServer);
 //                    waitABit();
