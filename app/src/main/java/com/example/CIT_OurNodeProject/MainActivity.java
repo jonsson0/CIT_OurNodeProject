@@ -246,7 +246,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                  //  Request request = apiHandler.buildRequestToGetData("3");
 
-                Request request = apiHandler.buildRequestToAddData("321", true);
+             //   Request request = apiHandler.buildRequestToAddData("321", true);
+
+                Request request = apiHandler.buildRequestToUpdatePhoneBook(node.phoneBookLeft, "left");
 
                     System.out.println(request.header);
 

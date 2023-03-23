@@ -17,15 +17,18 @@ public class PhoneBook {
     }
 
 
-    public String toString(){
+    public String toJsonArrayString(){
 
-
-
+        JSONArray jsonArrayOfIps = new JSONArray();
         for (String Ip: IPs ) {
-            JSONObject json = new JSONObject();
-
+            JSONObject IpAsJson = new JSONObject();
+            try {
+                IpAsJson.put("IP", Ip);
+                jsonArrayOfIps.put(IpAsJson);
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
         }
-
-        return IPs.toString();
+        return jsonArrayOfIps.toString();
     }
 }

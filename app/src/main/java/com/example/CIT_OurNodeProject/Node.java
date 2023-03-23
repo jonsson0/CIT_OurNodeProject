@@ -35,6 +35,7 @@ public class Node {
     public void contactNeighbor(String IP, String path) {
 
     }
+
     public boolean deleteDataLocally(String Value) {
         for (int i = 0; i < listOfData.size(); i++) {
             //if our node has the data

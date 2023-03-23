@@ -7,6 +7,15 @@ public class Neighbor {
     String IP;
 
     ArrayList<Data> listOfData = new ArrayList<Data>();
+
+
+
+    public void removeAllData() {
+        for (Data data : listOfData) {
+            listOfData.remove(data);
+        }
+    }
+
     public boolean deleteDataLocally(String Value) {
         for (int i = 0; i < listOfData.size(); i++) {
             //if our node has the data

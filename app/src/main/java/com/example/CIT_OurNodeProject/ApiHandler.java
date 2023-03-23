@@ -30,19 +30,18 @@ public class ApiHandler {
         return response;
     }
 
-    // For server:
-    public Response requestHandler(Request request, String IP) {
+    // What should happen if we get a request with any of these:
+    public Response requestHandler(Request request, String otherIP) {
         Response response = new Response();
         switch (request.path.toLowerCase()) {
             case "getid":
                 response = buildResponseToGetId(response);
                 break;
             case "updatephonebook":
-                response = buildResponseToNewNeighbor(response, IP);
+                response = buildResponseToUpdatePhonebook(request);
                 break;
-
             case "getphonebook":
-                response = buildResponseToGetPhonebook(response);
+                response = buildResponseToGetPhonebook();
                 break;
             case "getdata":
                 response = buildResponseToGetData(response, request);
@@ -64,6 +63,7 @@ public class ApiHandler {
         return response;
     }
 
+    // What should happen when we get a response from any of these requests:
     public Response respondHandler(Request request, Response response) throws JSONException, IOException {
 
         switch (request.path.toLowerCase()) {
@@ -90,7 +90,7 @@ public class ApiHandler {
     }
 
 
-    // for client:
+    /** BUILDING RESPONSES **/
 
     public Response buildResponseToGetId(Response response) {
         response.status = "200 OK";
@@ -106,41 +106,77 @@ public class ApiHandler {
         return response;
     }
 
-    public Response buildResponseToNewNeighbor(Response response, String IP) {
+    public Response buildResponseToUpdatePhonebook(Request request) {
+
+        // TODO check if request is correct
+
+        Response response = new Response();
+
         response.status = "200 OK";
 
-        // creating the json body for the response:
-        JSONObject jsonBody = new JSONObject();
-        JSONArray jsonArrayOfData = new JSONArray();
+        JSONObject jsonBody = request.body;
+        JSONArray jsonArrayOfIP;
+        JSONObject jsonBodyData;
+        PhoneBook phoneBook = new PhoneBook();
 
-
+        // Getting side and phonebook from the request:
         try {
+            // outer most layer of json
+            jsonBodyData = jsonBody.getJSONObject("Data");
 
-            if (jsonBody.getString("Side").equals("left")) {
-                Neighbor neighbor = new Neighbor();
-                neighbor.IP = IP;
-                node.neighborLeft = neighbor;
+            // inner json
+            String side = jsonBodyData.getString("Side");
+            jsonArrayOfIP = new JSONArray(jsonBodyData.getString("PhoneBook"));
+
+            // foreach json in jsonArrayOfIP add it to the new phonebook
+            for (int i = 0; i < jsonArrayOfIP.length(); i++) {
+
+                JSONObject IpJsonObject = jsonArrayOfIP.getJSONObject(i);
+                String IP = IpJsonObject.getString("IP");
+
+                phoneBook.IPs.add(IP);
             }
 
+            // replacing the old phonebook with the new
+            if (side.equalsIgnoreCase("left")) {
 
-            for (Data data : node.listOfData) {
-                JSONObject jsonDataObject = new JSONObject();
-                jsonDataObject.put("Id", data.id);
-                jsonDataObject.put("Value", data.value);
-                jsonDataObject.put("IsParent", "False");
-                jsonDataObject.put("IsGlobal", "False");
+                // checking if first element in the new phonebook is not my neighbor
+                if (phoneBook.IPs.get(0).equals(node.neighborLeft.IP)) {
+                    System.out.println("I got a new phonebook, and I dont need to swap my left neighbor");
+                } else {
+                    System.out.println("I got a new phonebook, and I need to swap left neighbor");
+                    node.neighborLeft.IP = phoneBook.IPs.get(0);
+                    node.neighborLeft.removeAllData();
+                }
+                node.phoneBookLeft = phoneBook;
+                System.out.println("New phonebookLeft: " + node.phoneBookLeft.IPs);
 
-                jsonArrayOfData.put(jsonDataObject);
+            } else if (side.equalsIgnoreCase("right")) {
+
+                if (phoneBook.IPs.get(0).equals(node.neighborRight.IP)) {
+                    System.out.println("I got a new phonebook, and I dont need to swap my right neighbor");
+                } else {
+                    System.out.println("I got a new phonebook, and I need to swap right neighbor");
+                    node.neighborRight.IP = phoneBook.IPs.get(0);
+                    node.neighborRight.removeAllData();
+                }
+
+                node.phoneBookRight = phoneBook;
+                System.out.println("New phonebookRight:" + node.phoneBookLeft.IPs);
             }
-            jsonBody.put("data", jsonArrayOfData);
+
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
-        response.body = jsonBody;
+
+        response.body = new JSONObject();
         return response;
     }
 
-    public Response buildResponseToGetPhonebook(Response response) {
+    public Response buildResponseToGetPhonebook() {
+
+        Response response = new Response();
+
         response.status = "200 OK";
         ArrayList<String> phoneBookRight = node.phoneBookRight.IPs;
         ArrayList<String> phoneBookLeft = node.phoneBookLeft.IPs;
@@ -214,6 +250,9 @@ public class ApiHandler {
         return response;
     }
 
+
+    /** BUILDING REQUESTS **/
+
     public Request buildRequestToGetData(String value) {
         System.out.println("88888888888");
         String hashedValue;
@@ -276,7 +315,6 @@ public class ApiHandler {
         return request;
     }
 
-
     public Response DeleteData(Request request) throws IOException, JSONException {
         JSONObject RequestData = request.body.getJSONObject("data");
         String Value = RequestData.getString("Value");
@@ -319,6 +357,25 @@ public class ApiHandler {
             }
         }
         return response;
+    }
+
+    public Request buildRequestToUpdatePhoneBook(PhoneBook phoneBook, String side) {
+
+        String jsonArrayStringOfPhoneBook = phoneBook.toJsonArrayString();
+
+        JSONObject jsonBody = new JSONObject();
+        JSONObject innerJson = new JSONObject();
+        try {
+            innerJson.put("Side", side);
+            innerJson.put("PhoneBook", jsonArrayStringOfPhoneBook);
+            jsonBody.put("Data", innerJson);
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+        Request request = new Request("get", "updatePhoneBook", jsonBody);
+
+        return request;
     }
 
 
@@ -394,7 +451,6 @@ public class ApiHandler {
 
         }
 
-
         Response response = new Response("OK 200", new JSONObject());
         return response;
     }
@@ -423,30 +479,31 @@ public class ApiHandler {
 
     public Response getDataHandler(Request request, Response response) {
 
+        System.out.println("Inside getDataHandler");
+
         Request originalRequest = new Request(request.method, request.path, request.body);
 
         if (response.status.contains("OK")) {
+            System.out.println("Response status contains OK");
             return response;
         } else {
+            System.out.println("Response didnt have the Data");
             boolean hasGottenData = false;
             PhoneBook copyPhonebook = node.phoneBookLeft.copy();
 
             System.out.println("THIS IS THE IPS:");
-            for (String IP : copyPhonebook.IPs) {
-                System.out.println(IP);
-            }
+            System.out.println(copyPhonebook.IPs);
+
             while (!hasGottenData) {
-                System.out.println("1");
+                System.out.println("while we dont have data");
                 String IP = copyPhonebook.IPs.get(0);
-                System.out.println(" the IP is: " + IP);
+                System.out.println(" the IP is we ask for data now: " + IP);
                 Socket connectionToServer;
                 try {
                     connectionToServer = new Socket(IP, 4444);
-                    System.out.println("2");
                     DataInputStream instream = new DataInputStream(connectionToServer.getInputStream());
-                    System.out.println("3");
                     DataOutputStream outstream = new DataOutputStream(connectionToServer.getOutputStream());
-                    System.out.println("4");
+
 //                            System.out.println(instream.readUTF());
 //                            String messageFromServer = instream.readUTF();
 //                            response = new Response(messageFromServer);
@@ -459,14 +516,20 @@ public class ApiHandler {
                             }
                             */
 
+                    System.out.println("Is the copyPhoneBook size == 1? ");
                     if (copyPhonebook.IPs.size() == 1) {
+                        System.out.println("The size of copyPhoneBook is 1, we get a new phonebook");
                         request = new Request("get", "getPhoneBook", new JSONObject());
                         String newMessage = request.toString();
-                        System.out.println("5");
+                        System.out.println("Sending this request: " + newMessage);
                         outstream.writeUTF(newMessage);
                         outstream.flush();
+
+                        // TODO implement something to check if response is coming or not if not ask new person
                         String messageFromServer = instream.readUTF();
+                        System.out.println("This is the response: " + messageFromServer);
                         response = new Response(messageFromServer);
+
                         JSONArray jsonPhoneBookCopy;
                         try {
                             jsonPhoneBookCopy = response.body.getJSONArray("LeftNeighbors");
@@ -477,41 +540,45 @@ public class ApiHandler {
                         } catch (JSONException e) {
                             throw new RuntimeException(e);
                         }
-
-                        System.out.println("6");
                     } else {
+                        System.out.println("The copyPhonebook is not == 1");
                         JSONObject jsonBody = new JSONObject();
+
+
+                        // MADS - Shouldnt this be the same request, but new sender?
+                        // Here it seems we make a new body?
+                        // shouldnt it be original request.body that we put in to the body?
                         try {
                             jsonBody.put("Id", "left");
                         } catch (JSONException e) {
                             throw new RuntimeException(e);
                         }
                         request = new Request("get", "getData", jsonBody);
-                        System.out.println("7");
+
+
+                        // This seems correct, maybe above just needs to be deleted?
+                        // I think so
+
                         outstream.writeUTF(originalRequest.toString());
                         outstream.flush();
-                        System.out.println();
+                        System.out.println("This is the request we send: " + originalRequest.toString());
                         String messageFromServer = instream.readUTF();
-                        System.out.println("Response from server: " + messageFromServer);
-
+                        System.out.println("This is the response we got: " + messageFromServer);
                         response = new Response(messageFromServer);
+
                         if (response.status.contains("OK")) {
                             hasGottenData = true;
-                            break;
                         }
-                    }
+                    } // else for copyPhoneBook == 1
                     connectionToServer.close();
                     copyPhonebook.IPs.remove(0);
-                    System.out.println("Phonebook: " + copyPhonebook.IPs);
 
                 } catch (IOException e) {
                     System.out.println("problem is: " + e.toString());
                     throw new RuntimeException(e);
                 }
-            }
+            } // while we havent gotten the data
             return response;
-        }
-    }
-
-
-}
+        } // else for response.status contain ok)
+    } // getDataHandler
+} // ApiHandler
