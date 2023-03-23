@@ -181,21 +181,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 //Run conversation
 //                while (carryOn) {
-                    String requestString = (String) instream.readUTF();
+                    String requestString = instream.readUTF();
 
-                    System.out.println("Recived requestString:");
-                    System.out.println(requestString);
 
                     Request requestFromClient = new Request(requestString);
 
-                    sUpdate("Client " + number + " says: " + requestFromClient.toString());
+                    sUpdate("Client " + number + " requests: " + requestFromClient.toString());
 
                     String answer = "";
+
                     Response response = apiHandler.requestHandler(requestFromClient, REMOTE_IP_ADDRESS);
 
                     answer = response.toString();
 
-                    sUpdate("Reply to client " + number + ": " + answer);
+                    sUpdate("Server " + number + "responds : " + answer);
                     outstream.writeUTF(answer);
                     outstream.flush();
 //                    waitABit();
@@ -246,18 +245,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                  //  Request request = apiHandler.buildRequestToGetData("3");
 
-                Request request = apiHandler.buildRequestToAddData("321", true);
+                    Request request = apiHandler.buildRequestToAddData("645745", true);
 
-                    System.out.println(request.header);
 
                     String message = request.toString();
 
                     out.writeUTF(message);
-                    cUpdate("I said:      " + message);
+                    cUpdate("Client said:      " + message);
                     String messageFromServer = instream.readUTF();
-                System.out.println("I said:      " + messageFromServer);
+                    cUpdate("Server said:      " + messageFromServer);
 
-                    Response response = new Response(messageFromServer);
+                System.out.println("REQUEST FROM CLIENT");
+                System.out.println(messageFromServer);
+                System.out.println("RESPONSE FROM SERVER");
+                System.out.println(message);
+
+                Response response = new Response(messageFromServer);
+
                     instream.close();
                     out.close();
                     connectionToServer.close();
