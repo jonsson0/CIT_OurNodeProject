@@ -5,7 +5,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 
-public class ClientManager {
+public class ClientManager implements IClientManager{
 
     Node node;
 
@@ -19,19 +19,26 @@ public class ClientManager {
         return response;
     }
 
-    public Response buildResponseToGetId(Response response) {
-        response.status = "200 OK";
-        JSONObject jsonBody = new JSONObject();
-
-        // creating the json body for the response:
-        try {
-            jsonBody.put("Id", node.IP);
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
-        response.body = jsonBody;
-        return response;
+    @Override
+    public Request generateRequest_UpdatePhoneBook(PhoneBook phoneBook, String side) {
+        return null;
     }
+
+    @Override
+    public Request generateRequest_GetData(String value) {
+        return null;
+    }
+
+    @Override
+    public Request generateRequest_AddData(String value, Boolean isParent) {
+        return null;
+    }
+
+    @Override
+    public Response generateRequest_DeleteData(Request request) throws IOException, JSONException {
+        return null;
+    }
+
 
 
 

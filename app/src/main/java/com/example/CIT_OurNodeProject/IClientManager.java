@@ -8,6 +8,8 @@ public interface IClientManager {
 
     Node node = null;
 
+
+
     Response handleResponseFromServer
             (Request request, Response response)
             throws JSONException, IOException;

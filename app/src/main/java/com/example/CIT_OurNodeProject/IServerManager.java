@@ -15,7 +15,7 @@ public interface IServerManager {
     Response generateResponse_GetId();
         //Response buildResponseToGetId(Response response);
 
-    Response generateResponse_UpdatePhonebook();
+    Response generateResponse_UpdatePhonebook(Request request);
         // public Response buildResponseToUpdatePhonebook(Request request) {
 
     Response generateResponse_GetPhonebook(Request request);
