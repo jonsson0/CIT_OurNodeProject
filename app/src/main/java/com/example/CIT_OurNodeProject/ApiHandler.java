@@ -319,9 +319,39 @@ public class ApiHandler {
 
     public Response DeleteData(Request request) throws IOException, JSONException {
 
+
+
         JSONObject RequestData = request.body.getJSONObject("Data");
         String id = RequestData.getString("Id");
         Response response = new Response();
+
+       boolean hasData = node.checkForData(id);
+
+       if (!hasData) {
+
+           JSONObject jsonBody = new JSONObject();
+           JSONObject innerJson = new JSONObject();
+
+           innerJson.put("Id", id);
+           innerJson.put("Value", "EmptyValue");
+           innerJson.put("isParent", true);
+
+           jsonBody.put("Data", innerJson);
+
+           Request getDataRequest = new Request("get", "getData", jsonBody);
+
+           response = getDataHandler(getDataRequest, new Response());
+
+           if (response.status.contains("200")) {
+               String IP = response.body.getString("IP");
+
+             Request requestToDelete = generateRequestForToDelete(request, true);
+
+             sendRequestToNeighbor(IP, requestToDelete);
+           }
+
+           return response;
+       }
 
         //delete own data if we have it
         if (RequestData.getBoolean("isParent")) {
@@ -330,7 +360,7 @@ public class ApiHandler {
 
             // IF we are parent of the data, ask children to delete the data
             // create request for children with isParent=True
-            Request requestForChild = generateRequestForChildToDelete(request);
+            Request requestForChild = generateRequestForToDelete(request, false);
             // send requests to children
             Response responseLeft = sendRequestToNeighbor(node.neighborLeft.IP, requestForChild);
             Response responseRight = sendRequestToNeighbor(node.neighborRight.IP, requestForChild);
@@ -349,14 +379,6 @@ public class ApiHandler {
         } else {
             node.neighborRight.deleteDataLocally(id);
             node.neighborLeft.deleteDataLocally(id);
-
-
-
-                    //IF we are not the parent we should just pass the request along to a neighbor
-                    else {
-                         response = sendRequestToNeighbor(node.neighborLeft.IP, request);
-                    }
-
 
         }
         return response;
@@ -383,13 +405,13 @@ public class ApiHandler {
 
 
 
-    private Request generateRequestForChildToDelete(Request request) throws JSONException {
+    private Request generateRequestForToDelete(Request request, boolean isParent) throws JSONException {
         JSONObject jsonBody = new JSONObject();
         JSONObject RequestData = request.body.getJSONObject("Data");
 
         jsonBody.put("ID",RequestData.get("id"));
         jsonBody.put("Value",RequestData.get("Value"));
-        jsonBody.put("isParent",false);
+        jsonBody.put("isParent",isParent);
 
         Request newRequest = new Request("get", request.path, jsonBody);
         return newRequest;
@@ -573,6 +595,15 @@ public class ApiHandler {
 
                         if (response.status.contains("OK")) {
                             hasGottenData = true;
+
+                            JSONObject jsonBody = new JSONObject();
+
+                            try {
+                                jsonBody.put("IP", node.IP);
+                            } catch (JSONException e) {
+                                throw new RuntimeException(e);
+                            }
+                            response.body = jsonBody;
                         }
                     } // else for copyPhoneBook == 1
                     connectionToServer.close();
