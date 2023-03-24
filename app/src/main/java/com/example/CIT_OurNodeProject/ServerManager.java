@@ -49,7 +49,7 @@ public class ServerManager implements IServerManager{
                 break;
             case "deletedata":
                 try {
-                    generateResponse_DeleteData(request);
+                   response = generateResponse_DeleteData(request);
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
                 }
@@ -271,6 +271,7 @@ public class ServerManager implements IServerManager{
                 System.out.println("PASSING ONTO SECOND CHILD" + requestForNeighbor.toString());
                 JSONObject jsonBody = new JSONObject();
                 jsonBody.put("Data Replicated on neighbors", "True");
+
                 if (r1.status.contains("200") && r2.status.contains("200")) {
                     Response response = new Response("OK 200", jsonBody);
                     return response;
@@ -292,7 +293,7 @@ public class ServerManager implements IServerManager{
 
         boolean hasData = node.checkForData(id);
 
-        if (!hasData) {
+        if (!hasData & RequestData.getBoolean("isParent")) {
 
             JSONObject jsonBody = new JSONObject();
             JSONObject innerJson = new JSONObject();
@@ -305,11 +306,9 @@ public class ServerManager implements IServerManager{
 
             Request getDataRequest = new Request("get", "getData", jsonBody);
 
-            Response responseEmpty = new Response("OK - Test", new JSONObject());
+            response = clientManager.getDataHandler(getDataRequest);
 
-            response = clientManager.getDataHandler(getDataRequest, responseEmpty);
-
-            if (response.status.contains("200")) {
+            if (response.status.contains("200 OK")) {
                 String IP = response.body.getString("IP");
 
                 String value = RequestData.getString("Value");
@@ -318,11 +317,14 @@ public class ServerManager implements IServerManager{
 
                 sendRequestToNeighbor(IP, requestToDelete);
             }
-
+            System.out.println("KATA WANTS THIS PRINT");
             return response;
         }
+        System.out.println("KATA WANTS THIS PRINT #2");
 
-        //delete own data if we have it
+        System.out.println(RequestData.getBoolean("isParent"));
+
+        // delete own data if we have it
         if (RequestData.getBoolean("isParent")) {
             // if parent ask us to delete, we delete if we can. Will always give 200 even if we dont hold data
             boolean isDeleted = node.deleteDataLocally(id);
@@ -331,20 +333,17 @@ public class ServerManager implements IServerManager{
             // create request for children with isParent=True
             Request requestForChild = clientManager.generateRequest_DeleteData_For_Child_Data(request, false);
             // send requests to children
+            System.out.println("Sending request to neighborLeft: " + requestForChild);
             Response responseLeft = sendRequestToNeighbor(node.neighborLeft.IP, requestForChild);
+            System.out.println("Sending request to neighborRight: " + requestForChild);
             Response responseRight = sendRequestToNeighbor(node.neighborRight.IP, requestForChild);
 
-            if (responseLeft.status == "200" && responseRight.status == "200") {
-                response = new Response("200", new JSONObject());
+            if (responseLeft.status.contains("OK") && responseRight.status.contains("OK")) {
+                response = new Response("200 OK", new JSONObject());
             } else {
                 response = new Response("400", new JSONObject());
             }
 
-            if (isDeleted) {
-                response = new Response("200 - deleted", new JSONObject());
-            } else {
-                response = new Response("404 Not Found - I dont have it", new JSONObject());
-            }
         } else {
             node.neighborRight.deleteDataLocally(id);
             node.neighborLeft.deleteDataLocally(id);
@@ -370,13 +369,14 @@ public class ServerManager implements IServerManager{
             connectionToNeighbor.close();
 
             // DataInputStream instream = new DataInputStream(connectionToNeighbor.getInputStream());
-            String value=request.body.getJSONObject("Data").getString("Value");
-            JSONObject responseObject=new JSONObject();
-            responseObject.put("Added",value);
-            response = new Response("200 OK", responseObject);
+           // String value = request.body.getJSONObject("Data").getString("Value");
+           // responseObject.put("Added", value);
+
+            response = new Response("200 OK", new JSONObject());
 
         }catch (Exception e){
             response = new Response("400", new JSONObject());
+            System.out.println(e);
 
         }
 

@@ -99,6 +99,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         node.phoneBookRight.IPs.add(THIS_IP_ADDRESS);
         node.phoneBookRight.IPs.add(THIS_IP_ADDRESS);
 
+        node.neighborLeft.listOfData.add(data);
+        node.neighborLeft.listOfData.add(data1);
+
 
         serverManager = new ServerManager(node);
         clientManager = new ClientManager(node);
@@ -273,7 +276,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     throw new RuntimeException(e);
                 }
 
-                //  Request request = apiHandler.buildRequestToGetData("3");
+              //  Request requestGetData = clientManager.generateRequest_GetData("3");
+
+                 // Response response123 = clientManager.getDataHandler(requestGetData);
 
                   //  Request request = clientManager.generateRequest_AddData("645745", true);
              //   Request request = apiHandler.buildRequestToAddData("321", true);
