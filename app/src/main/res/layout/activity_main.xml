@@ -4,92 +4,21 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        tools:context=".MainActivity">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".MainActivity">
 
-        <TextView
-        android:text="Server"
-        android:background="#eab676"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-        <ScrollView
-            android:id="@+id/scrollViewServer"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="40">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
-
-                <TextView
-                    android:id="@+id/serveroutput"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Hello World!" />
-            </LinearLayout>
-        </ScrollView>
     <TextView
-        android:text="Client"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:background="#eab676"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-
-        android:orientation="horizontal">
-
-        <EditText
-            android:id="@+id/clientmessagefield"
-            android:layout_width="0dp"
-            android:layout_weight="75"
-            android:layout_height="wrap_content"
-            android:ems="10"
-            android:inputType="textPersonName" />
-
-        <Button
-            android:id="@+id/sendclient"
-            android:layout_width="0dp"
-            android:layout_weight="25"
-            android:layout_height="wrap_content"
-            android:text="Submit" />
-
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <View
-            android:layout_width="0dp"
-            android:layout_weight="10"
-            android:layout_height="match_parent">
-
-        </View>
-        <Button
-            android:id="@+id/button"
-            android:layout_width="0dp"
-            android:layout_weight="80"
-            android:layout_height="wrap_content"
-            android:text="Start client" />
-
-        <View
-            android:layout_width="0dp"
-            android:layout_weight="10"
-            android:layout_height="match_parent">
-
-        </View>
-
-    </LinearLayout>
+        android:text="Server" />
 
     <ScrollView
-        android:id="@+id/scrollViewClient"
+        android:id="@+id/scrollViewServer"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="40">
+        android:layout_height="122dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -97,11 +26,202 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/clientoutput"
+                android:id="@+id/serveroutput"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:text="Hello World!" />
         </LinearLayout>
     </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="58dp"
+
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/clientmessagefield"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="75"
+            android:ems="10"
+            android:inputType="textPersonName"
+            android:minHeight="48dp" />
+
+        <Button
+            android:id="@+id/sendclient"
+            android:layout_width="140dp"
+            android:layout_height="60dp"
+            android:layout_weight="25"
+            android:text="Submit" />
+
     </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="80">
+
+            <Button
+                android:id="@+id/button"
+                android:layout_width="350dp"
+                android:layout_height="38dp"
+                android:layout_weight="80"
+                android:text="Start client"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="138dp"
+        android:orientation="horizontal">
+
+        <ScrollView
+            android:id="@+id/scrollViewClient"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/clientoutput"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#eab676"
+                    android:text="Client" />
+
+            </LinearLayout>
+        </ScrollView>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="10">
+
+        </View>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="10">
+
+        </View>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="259dp">
+
+            <Button
+                android:id="@+id/GetID"
+                android:layout_width="140dp"
+                android:layout_height="60dp"
+
+                android:layout_marginStart="20dp"
+                android:text="Get ID"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.505"
+                app:layout_constraintStart_toEndOf="@+id/getData"
+                app:layout_constraintTop_toTopOf="@+id/getData" />
+
+            <androidx.constraintlayout.widget.Guideline
+                android:id="@+id/guideline"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                app:layout_constraintGuide_begin="20dp" />
+
+            <Button
+                android:id="@+id/getData"
+                android:layout_width="140dp"
+                android:layout_height="60dp"
+
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="24dp"
+                android:text="Get data"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <Button
+                android:id="@+id/GetPhonebook"
+                android:layout_width="140dp"
+                android:layout_height="60dp"
+
+                android:layout_marginTop="24dp"
+                android:layout_marginEnd="36dp"
+                android:text="Get Phonebook"
+                app:layout_constraintStart_toStartOf="@+id/getData"
+                app:layout_constraintTop_toBottomOf="@+id/getData" />
+
+            <Button
+                android:id="@+id/UpdatePhonebook"
+                android:layout_width="140dp"
+                android:layout_height="60dp"
+
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="24dp"
+                android:text="Update phonebook"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.505"
+                app:layout_constraintStart_toEndOf="@+id/GetPhonebook"
+                app:layout_constraintTop_toBottomOf="@+id/GetID" />
+
+            <Button
+                android:id="@+id/addData"
+                android:layout_width="140dp"
+                android:layout_height="60dp"
+                android:layout_marginTop="24dp"
+                android:text="Add data"
+                app:layout_constraintEnd_toEndOf="@+id/getData"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/GetPhonebook" />
+
+            <Button
+                android:id="@+id/deleteData"
+                android:layout_width="140dp"
+                android:layout_height="60dp"
+
+                android:layout_marginTop="24dp"
+                android:layout_marginEnd="36dp"
+                android:text="Delete data"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@+id/GetID"
+                app:layout_constraintTop_toBottomOf="@+id/UpdatePhonebook" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="98dp"
+            tools:layout_editor_absoluteY="283dp">
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
+
+</LinearLayout>
 
 

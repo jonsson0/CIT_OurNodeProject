@@ -33,6 +33,12 @@ public class Request {
         this.body = body;
     }
 
+    public Request(String method, String path) {
+        this.method = method;
+        this.path = path;
+        this.body = new JSONObject();
+    }
+
 
     public Request copy(){
         Request newRequest = new Request();

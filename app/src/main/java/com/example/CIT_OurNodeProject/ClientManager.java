@@ -48,6 +48,15 @@ public class ClientManager implements IClientManager{
         return response;
     }
 
+    public Request generateRequest_GetId(){
+        Request request = new Request("get", "getId");
+        return request;
+    }
+
+    public Request generateRequest_GetPhonebook(){
+        Request request = new Request("get", "getPhonebook");
+        return request;
+    }
     @Override
     public Request generateRequest_UpdatePhoneBook(PhoneBook phoneBook, String side) {
         String jsonArrayStringOfPhoneBook = phoneBook.toJsonArrayString();
@@ -130,7 +139,7 @@ public class ClientManager implements IClientManager{
         return request;
     }
 
-    public Request generateRequest_DeleteData(String value, boolean isParent) throws JSONException {
+    public Request generateRequest_DeleteData(String value, boolean isParent) {
 
         JSONObject jsonBody = new JSONObject();
         JSONObject innerJson = new JSONObject();
@@ -142,11 +151,15 @@ public class ClientManager implements IClientManager{
             throw new RuntimeException(e);
         }
 
-        innerJson.put("Id", id);
+        try {
+            innerJson.put("Id", id);
         innerJson.put("isParent",isParent);
 
         jsonBody.put("Data", innerJson);
 
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
         Request newRequest = new Request("get", "deleteData", jsonBody);
         return newRequest;
     }
@@ -661,35 +674,5 @@ public class ClientManager implements IClientManager{
 //        return response;
     }
 
-
-    private Response sendOutRequest_addData2(String targetIP, ArrayList<Data> dataList, boolean isParent){
-        Response response;
-        Socket connectionToServer = null;
-
-        try {
-            connectionToServer = new Socket(targetIP, 4444);
-            DataOutputStream outstream_request = new DataOutputStream(connectionToServer.getOutputStream());
-            DataInputStream instream_response  = new DataInputStream(connectionToServer.getInputStream());
-//            for (Data data: dataList) {
-                Request request = generateRequest_AddData(dataList.get(0).value, isParent);
-
-                System.out.println("Request \n " + request.body);
-                outstream_request.writeUTF(request.toString()); //RIGHT?
-                outstream_request.flush();
-                System.out.println("Instream --- \n" + instream_response.read());
-                String responseFromServer = instream_response.readUTF();
-                response = new Response(responseFromServer);
-                System.out.println("something");
-//            }
-            outstream_request.close();
-            instream_response.close();
-            connectionToServer.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        return response;
-
-    }
 
 }
