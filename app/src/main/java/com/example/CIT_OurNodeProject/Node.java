@@ -33,9 +33,6 @@ public class Node {
         return false;
     }
 
-    public void init(String IP, ApiHandler apiHandler) {
-
-    }
 
     public void addDataFromString(String inputString, Boolean isParent) {
         Data data = new Data(inputString, isParent);

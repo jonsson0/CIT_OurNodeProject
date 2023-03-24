@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     Node node;
 
-    ApiHandler apiHandler;
+//    ApiHandler apiHandler;
     ServerManager serverManager;
     ClientManager clientManager;
 
@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         serverManager = new ServerManager(node);
         clientManager = new ClientManager(node);
-        apiHandler = new ApiHandler(node);
+//        apiHandler = new ApiHandler(node);
         //Starting the server thread
         serverThread.start();
         serverinfo += "- - - SERVER STARTED - - -\n";
