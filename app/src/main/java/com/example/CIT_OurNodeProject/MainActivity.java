@@ -14,6 +14,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -243,9 +244,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 //                while (carryOn) {
 
+
+                Request request = new Request("get", "getId", new JSONObject());
+
                  //  Request request = apiHandler.buildRequestToGetData("3");
 
-                    Request request = clientManager.generateRequest_AddData("645745", true);
+                  //  Request request = clientManager.generateRequest_AddData("645745", true);
              //   Request request = apiHandler.buildRequestToAddData("321", true);
 
                // Request request = apiHandler.buildRequestToUpdatePhoneBook(node.phoneBookLeft, "left");
@@ -256,21 +260,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     out.writeUTF(message);
                     cUpdate("Client said:      " + message);
                     String messageFromServer = instream.readUTF();
-                System.out.println("I said:      " + messageFromServer);
 
                     Response response = new Response(messageFromServer);
                     instream.close();
                     out.close();
                     connectionToServer.close();
-/*
-
-* */
 
                 clientManager.handleResponseFromServer(request, response);
 
                     cUpdate("Server says: " + messageFromServer);
+
 //                    waitABit();
 //                }
+
                 cUpdate("CLIENT: closed inputstream");
                 cUpdate("CLIENT: closed outputstream");
                 cUpdate("CLIENT: closed socket");
