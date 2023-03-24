@@ -199,7 +199,7 @@ public class ClientManager implements IClientManager{
 
             Request getDataRequest = new Request("get", "getData", jsonBody);
 
-            response = getDataHandler(getDataRequest, new Response());
+            response = getDataHandler(getDataRequest);
 
             if (response.status.contains("200")) {
                 String IP = response.body.getString("IP");
@@ -347,17 +347,50 @@ public class ClientManager implements IClientManager{
     } // getDataHandler
 
 
-    public Response getDataHandler(Request request, Response response) {
+    public Response getDataHandler(Request request) {
 
+        Response response = null;
+        String id;
+
+        try {
+            JSONObject jsonBody = request.body.getJSONObject("Data");
+            id = jsonBody.getString("Id");
+
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
         System.out.println("Inside getDataHandler");
 
         Request originalRequest = new Request(request.method, request.path, request.body);
 
-        if (response.status.contains("200 OK")) {
+        boolean iHaveTheData = node.checkForData(id);
+
+        if (iHaveTheData) {
             System.out.println("Response status contains OK");
 
+            JSONObject jsonBody = new JSONObject();
+            JSONObject innerJson = new JSONObject();
 
-            
+            String value = "";
+
+            for (Data data : node.listOfData) {
+                if (data.id.equals(id)) {
+                    value = data.value;
+                }
+            }
+
+            try {
+                innerJson.put("Id", id);
+                innerJson.put("Value", value);
+                innerJson.put("IP", node.IP);
+
+                jsonBody.put("Data", innerJson);
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+
+            response = new Response("200 OK", jsonBody);
+
             return response;
         } else {
             System.out.println("Response didnt have the Data");

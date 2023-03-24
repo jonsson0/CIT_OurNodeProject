@@ -307,7 +307,7 @@ public class ServerManager implements IServerManager{
 
             Response responseEmpty = new Response("123", new JSONObject());
 
-            response = clientManager.getDataHandler(getDataRequest, responseEmpty);
+            response = clientManager.getDataHandler(getDataRequest);
 
             if (response.status.contains("200 OK")) {
                 String IP = response.body.getString("IP");
