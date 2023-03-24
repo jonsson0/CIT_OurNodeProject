@@ -1,7 +1,6 @@
 package com.example.CIT_OurNodeProject;
 
 
-import android.app.AuthenticationRequiredException;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -15,7 +14,6 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -26,7 +24,6 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.security.NoSuchAlgorithmException;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -34,6 +31,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button startClientButton, submitIP;
     private Button getIdButton, getPhonebookButton, updatePhonebookButton;
     private Button getDataButton, addDataButton, deleteDataButton;
+    private Button showDataButton;
+
     private TextView serverInfoTv, clientInfoTv;
     private EditText ipInputField;
 
@@ -66,7 +65,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
 
         //UI boilerplate
-        startClientButton = findViewById(R.id.button);
+        startClientButton = findViewById(R.id.startClient);
         serverInfoTv      = findViewById(R.id.serveroutput);
         clientInfoTv      = findViewById(R.id.clientoutput);
         submitIP = findViewById(R.id.sendclient);
@@ -79,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getDataButton = findViewById(R.id.getData);
         addDataButton = findViewById(R.id.addData);
         deleteDataButton = findViewById(R.id.deleteData);
+        showDataButton = findViewById(R.id.showData);
 
 //        private Button getIdButton, getPhonebookButton, updatePhonebook;
 //        private Button getDataButton, addDataButton, deleteDataButton;
@@ -93,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getDataButton.setOnClickListener(this);
         addDataButton.setOnClickListener(this);
         deleteDataButton.setOnClickListener(this);
+        getDataButton.setOnClickListener(this);
 
         //Setting some UI state
         ipInputField.setHint("Submit IP-address");
@@ -120,8 +121,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         node.phoneBookRight.IPs.add(THIS_IP_ADDRESS);
         node.phoneBookRight.IPs.add(THIS_IP_ADDRESS);
 
-        node.neighborLeft.listOfData.add(data);
-        node.neighborLeft.listOfData.add(data1);
+//        node.neighborLeft.listOfData.add(data);
+//        node.neighborLeft.listOfData.add(data1);
 
 
         serverManager = new ServerManager(node);
@@ -246,6 +247,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Thread clientThread = new Thread(cThread);
                 clientThread.start();
             }
+
+        } else if (view == showDataButton) {
+            String thisNodeData = "This node: " + node.listOfData.toString() + "\n";
+            String leftData = "left neighbor data: " + node.neighborLeft.listOfData.toString()+ "\n";
+            String rightData = "right neighbor data: " +node.neighborRight.listOfData.toString();
+            sUpdate(thisNodeData + leftData + rightData);
 
         }
 
