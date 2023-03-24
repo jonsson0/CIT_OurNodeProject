@@ -254,7 +254,6 @@ public class ApiHandler {
     /** BUILDING REQUESTS **/
 
     public Request buildRequestToGetData(String value) {
-        System.out.println("88888888888");
         String hashedValue;
 
             try {
@@ -318,8 +317,6 @@ public class ApiHandler {
 
 
     public Response DeleteData(Request request) throws IOException, JSONException {
-
-
 
         JSONObject RequestData = request.body.getJSONObject("Data");
         String id = RequestData.getString("Id");
