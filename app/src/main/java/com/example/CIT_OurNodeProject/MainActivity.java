@@ -1,6 +1,7 @@
 package com.example.CIT_OurNodeProject;
 
 
+import android.app.AuthenticationRequiredException;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -118,10 +119,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (view == startClientButton) {
             if (!clientStarted) {
                 clientStarted = true;
+                System.out.println("HERE????");
                 clientThread.start();
                 clientinfo += "- - - CLIENT STARTED - - - \n";
                 startClientButton.setText("Resend");
-
             } else{
                 if(!ipInputField.getText().toString().equals(REMOTE_IP_ADDRESS)) {
                    // String newCommand = ipInputField.getText().toString();
@@ -238,6 +239,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public void run() {
 
             try {
+                if (!node.isInNetwork){
+                    clientManager.joinNetwork(REMOTE_IP_ADDRESS);
+                }
                 cUpdate("CLIENT: starting client socket ");
                 cUpdate("CLIENT: client connected ");
                 Socket connectionToServer = new Socket(REMOTE_IP_ADDRESS, 4444);
@@ -264,17 +268,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 System.out.println(node.phoneBookLeft.IPs);
                 */
 
-                Request request = new Request("get", "getPhoneBook", new JSONObject());
-
-                Request requestAddData = clientManager.generateRequest_AddData("12345", true);
-
-
-                Request requestDeleteData;
-                try {
-                    requestDeleteData = clientManager.generateRequest_DeleteData("3", true);
-                } catch (RuntimeException e) {
-                    throw new RuntimeException(e);
-                }
+//                Request request = new Request("get", "getPhoneBook", new JSONObject());
+//
+//                Request requestAddData = clientManager.generateRequest_AddData("12345", true);
+//
+//
+//                Request requestDeleteData;
+//                try {
+//                    requestDeleteData = clientManager.generateRequest_DeleteData("3", true);
+//                } catch (RuntimeException e) {
+//                    throw new RuntimeException(e);
+//                }
 
               //  Request requestGetData = clientManager.generateRequest_GetData("3");
 
@@ -285,12 +289,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                // Request request = apiHandler.buildRequestToUpdatePhoneBook(node.phoneBookLeft, "left");
 
+//                    Request request1 = clientManager.joinNetwork(REMOTE_IP_ADDRESS);
+                Request request = new Request("get", "getphonebook", new JSONObject());
+//                    clientManager.joinNetwork(REMOTE_IP_ADDRESS);
 
-                    String message = requestDeleteData.toString();
+
+                    String message = request.toString();
 
                     out.writeUTF(message);
                     out.flush();
-                    cUpdate("Client said:      " + message);
+                    cUpdate("Client said:      " + message)
+                        ;
                     String messageFromServer = instream.readUTF();
 
                 System.out.println("THIS IS THE MESSAGEFROMSERVER:");

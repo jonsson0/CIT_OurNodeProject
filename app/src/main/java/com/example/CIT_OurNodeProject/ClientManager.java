@@ -11,6 +11,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 
 public class ClientManager implements IClientManager{
 
@@ -114,7 +115,7 @@ public class ClientManager implements IClientManager{
             innerJson.put("Id", hashedValue );
             innerJson.put("Value", value);
             innerJson.put("isParent", isParent);
-            //   innerJson.put("SenderIP", )
+           innerJson.put("senderIP", node.IP);
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
@@ -512,8 +513,8 @@ public class ClientManager implements IClientManager{
         return response;
     }
 
-    public void joinNetwork(String inviterIP) {
-        Socket connectionToServer;
+    public Request joinNetwork(String inviterIP) {
+//        Socket connectionToServer;
 
         // Get the phonebook of the inviter
         Response phonebookResponse_Inviter = sendOutRequest_getPhonebook(inviterIP);
@@ -565,6 +566,13 @@ public class ClientManager implements IClientManager{
         PhoneBook newOthers2ndLeftNeighborPhonebook = new PhoneBook(othersRightNeighborIP, otherIP, node.IP);
         Response updatePhonebookResponseLeftLeft = sendOutRequest_updatePhonebook(others2ndRightNeighborIP, newOthers2ndLeftNeighborPhonebook, "right");
 
+        // ADD DATA
+        sendOutRequest_addData(inviterIP, node.listOfData, false );
+        sendOutRequest_addData(otherIP, node.listOfData, false );
+
+
+
+        return new Request();
         // TODO: send add data to both inviter and other
 
     }
@@ -582,10 +590,12 @@ public class ClientManager implements IClientManager{
 
             String responseFromServer = instream_response.readUTF();
             response = new Response(responseFromServer);
+        outstream_request.close();
+        instream_response.close();
+        connectionToServer.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
         return response;
     }
 
@@ -605,18 +615,43 @@ public class ClientManager implements IClientManager{
 
             String responseFromServer = instream_response.readUTF();
             response = new Response(responseFromServer);
+            outstream_request.close();
+            instream_response.close();
+        connectionToServer.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return response;
+    }
+
+    private Response sendOutRequest_addData(String targetIP, ArrayList<Data> dataList, boolean isParent){
+        Response response = new Response();
+        Socket connectionToServer = null;
+
+        try {
+            connectionToServer = new Socket(targetIP, 4444);
+            DataOutputStream outstream_request = new DataOutputStream(connectionToServer.getOutputStream());
+            DataInputStream instream_response  = new DataInputStream(connectionToServer.getInputStream());
+            for (Data data: dataList) {
+                Request request = generateRequest_AddData(data.value, isParent);
+
+                System.out.println("Request \n " + request.body);
+                outstream_request.writeUTF(request.toString()); //RIGHT?
+                outstream_request.flush();
+                System.out.println("Instream --- \n" + instream_response.read());
+                String responseFromServer = instream_response.readUTF();
+                response = new Response(responseFromServer);
+                System.out.println("something");
+            }
+            outstream_request.close();
+            instream_response.close();
+            connectionToServer.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
         return response;
-    }
 
-    private Response sendOutRequest_addData(){
-
-
-
-        return null;
     }
 
 }

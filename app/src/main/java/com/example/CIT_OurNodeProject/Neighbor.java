@@ -11,9 +11,7 @@ public class Neighbor {
 
 
     public void removeAllData() {
-        for (Data data : listOfData) {
-            listOfData.remove(data);
-        }
+        listOfData.clear();
     }
 
     public boolean deleteDataLocally(String Value) {

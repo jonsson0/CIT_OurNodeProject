@@ -6,6 +6,9 @@ import java.util.ArrayList;
 
 public class Node {
 
+
+    boolean isInNetwork = false;
+
     String IP;
 
     ArrayList<Data> listOfData = new ArrayList<Data>();

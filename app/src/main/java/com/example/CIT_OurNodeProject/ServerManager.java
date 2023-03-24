@@ -229,6 +229,7 @@ public class ServerManager implements IServerManager{
     public Response generateResponse_AddData(Request request) throws IOException, JSONException {
 
         JSONObject requestData = null;
+
         try {
             requestData = request.body.getJSONObject("Data");
             String value = requestData.getString("Value");
@@ -250,6 +251,7 @@ public class ServerManager implements IServerManager{
                 responseBody.put("Neighbor","ADDEDSUCCESS");
                 Response response = new Response("200", responseBody);
 
+                System.out.println("Response is: " + response.body);
                 return response;
             } else if(isParent){
                 //Adds to own
