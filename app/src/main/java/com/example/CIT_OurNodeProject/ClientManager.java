@@ -607,6 +607,7 @@ public class ClientManager implements IClientManager{
             DataOutputStream outstream_request = new DataOutputStream(connectionToServer.getOutputStream());
             DataInputStream instream_response = new DataInputStream(connectionToServer.getInputStream());
             Request request = generateRequest_UpdatePhoneBook(newPhonebook, side);
+//            Request request = generateRequest_AddData("33322", false);
 
 //
 //            Request request = new Request("get", "updatePhonebook", new JSONObject(newPhonebook);
@@ -624,16 +625,53 @@ public class ClientManager implements IClientManager{
         return response;
     }
 
-    private Response sendOutRequest_addData(String targetIP, ArrayList<Data> dataList, boolean isParent){
-        Response response = new Response();
+
+    private void sendOutRequest_addData(String targetIP, ArrayList<Data> dataList, boolean isParent){
+        Socket connectionToServer = null;
+        Response response;
+        try {
+            connectionToServer = new Socket(targetIP, 4444);
+            DataOutputStream outstream_request = new DataOutputStream(connectionToServer.getOutputStream());
+            DataInputStream instream_response = new DataInputStream(connectionToServer.getInputStream());
+//            Request request = generateRequest_UpdatePhoneBook(newPhonebook, side);
+            for (Data data : dataList) {
+                connectionToServer = new Socket(targetIP, 4444);
+                outstream_request = new DataOutputStream(connectionToServer.getOutputStream());
+                instream_response = new DataInputStream(connectionToServer.getInputStream());
+
+//                Request request = generateRequest_AddData(data.value, false);
+                Request request = generateRequest_AddData(data.value, false);
+
+    //
+    //            Request request = new Request("get", "updatePhonebook", new JSONObject(newPhonebook);
+                outstream_request.writeUTF(request.toString()); //RIGHT?
+                outstream_request.flush();
+
+                String responseFromServer = instream_response.readUTF();
+                System.out.println("HELLO");
+                response = new Response(responseFromServer);
+            }
+
+            outstream_request.close();
+            instream_response.close();
+            connectionToServer.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+//        return response;
+    }
+
+
+    private Response sendOutRequest_addData2(String targetIP, ArrayList<Data> dataList, boolean isParent){
+        Response response;
         Socket connectionToServer = null;
 
         try {
             connectionToServer = new Socket(targetIP, 4444);
             DataOutputStream outstream_request = new DataOutputStream(connectionToServer.getOutputStream());
             DataInputStream instream_response  = new DataInputStream(connectionToServer.getInputStream());
-            for (Data data: dataList) {
-                Request request = generateRequest_AddData(data.value, isParent);
+//            for (Data data: dataList) {
+                Request request = generateRequest_AddData(dataList.get(0).value, isParent);
 
                 System.out.println("Request \n " + request.body);
                 outstream_request.writeUTF(request.toString()); //RIGHT?
@@ -642,7 +680,7 @@ public class ClientManager implements IClientManager{
                 String responseFromServer = instream_response.readUTF();
                 response = new Response(responseFromServer);
                 System.out.println("something");
-            }
+//            }
             outstream_request.close();
             instream_response.close();
             connectionToServer.close();
