@@ -25,6 +25,7 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.security.NoSuchAlgorithmException;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -244,10 +245,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 //                while (carryOn) {
 
+                /*
+                // testing updatephonebook
+                PhoneBook copyPhoneBook = new PhoneBook();
 
-                Request request = new Request("get", "getId", new JSONObject());
+                copyPhoneBook.IPs.add("tyooo");
 
-                 //  Request request = apiHandler.buildRequestToGetData("3");
+                System.out.println("THIS IS THE BEFORE:");
+                System.out.println(node.phoneBookLeft.IPs);
+
+                Request request = clientManager.generateRequest_UpdatePhoneBook(copyPhoneBook, "left");
+
+                // this should be moved down after we get response
+                System.out.println("THIS IS THE AFTER:");
+                System.out.println(node.phoneBookLeft.IPs);
+                */
+
+                Request request = new Request("get", "getPhoneBook", new JSONObject());
+
+                Request requestAddData = clientManager.generateRequest_AddData("12345", true);
+
+
+                Request requestDeleteData;
+                try {
+                    requestDeleteData = clientManager.generateRequest_DeleteData("3", true);
+                } catch (RuntimeException e) {
+                    throw new RuntimeException(e);
+                }
+
+                //  Request request = apiHandler.buildRequestToGetData("3");
 
                   //  Request request = clientManager.generateRequest_AddData("645745", true);
              //   Request request = apiHandler.buildRequestToAddData("321", true);
@@ -255,11 +281,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                // Request request = apiHandler.buildRequestToUpdatePhoneBook(node.phoneBookLeft, "left");
 
 
-                    String message = request.toString();
+                    String message = requestDeleteData.toString();
 
                     out.writeUTF(message);
+                    out.flush();
                     cUpdate("Client said:      " + message);
                     String messageFromServer = instream.readUTF();
+
+                System.out.println("THIS IS THE MESSAGEFROMSERVER:");
+                System.out.println(messageFromServer);
 
                     Response response = new Response(messageFromServer);
                     instream.close();
@@ -325,4 +355,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
     }
+
+
+    /** FOR TESTING **/
+
+
+    public void test_Update_PhoneBook() {
+        PhoneBook copyPhoneBook = new PhoneBook();
+
+        copyPhoneBook.IPs.add("tyooo");
+
+        System.out.println("THIS IS THE BEFORE:");
+        System.out.println(node.phoneBookLeft.IPs);
+
+        Request request = clientManager.generateRequest_UpdatePhoneBook(copyPhoneBook, "left");
+    }
+
 }

@@ -49,12 +49,52 @@ public class ClientManager implements IClientManager{
 
     @Override
     public Request generateRequest_UpdatePhoneBook(PhoneBook phoneBook, String side) {
-        return null;
+        String jsonArrayStringOfPhoneBook = phoneBook.toJsonArrayString();
+
+        JSONObject jsonBody = new JSONObject();
+        JSONObject innerJson = new JSONObject();
+        try {
+            innerJson.put("Side", side);
+            innerJson.put("PhoneBook", jsonArrayStringOfPhoneBook);
+            jsonBody.put("Data", innerJson);
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+        Request request = new Request("get", "updatePhoneBook", jsonBody);
+
+        return request;
     }
 
     @Override
     public Request generateRequest_GetData(String value) {
-        return null;
+        String hashedValue;
+
+        try {
+            hashedValue = SHA256.toHexString(SHA256.getSHA(value));
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+
+        JSONObject json = new JSONObject();
+        JSONObject innerJson = new JSONObject();
+
+        try {
+            innerJson.put("Id", hashedValue );
+
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            json.put("Data", innerJson);
+
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+
+        Request request = new Request("get", "getData", json);
+        return request;
     }
 
     @Override
@@ -89,15 +129,51 @@ public class ClientManager implements IClientManager{
         return request;
     }
 
-    private Request generateRequest_DeleteData(Request request, boolean isParent) throws JSONException {
+    public Request generateRequest_DeleteData(String value, boolean isParent) throws JSONException {
+
         JSONObject jsonBody = new JSONObject();
-        JSONObject RequestData = request.body.getJSONObject("Data");
+        JSONObject innerJson = new JSONObject();
 
-        jsonBody.put("ID",RequestData.get("id"));
-        jsonBody.put("Value",RequestData.get("Value"));
-        jsonBody.put("isParent",isParent);
+        String id = null;
+        try {
+            id = SHA256.toHexString(SHA256.getSHA(value));
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
 
-        Request newRequest = new Request("get", request.path, jsonBody);
+        innerJson.put("Id", id);
+        innerJson.put("isParent",isParent);
+
+        jsonBody.put("Data", innerJson);
+
+        Request newRequest = new Request("get", "deleteData", jsonBody);
+        return newRequest;
+    }
+
+    public Request generateRequest_DeleteData_For_Child_Data(Request request, boolean isParent) throws JSONException {
+
+        JSONObject RequestData = null;
+
+        String id = null;
+
+        try {
+            RequestData = request.body.getJSONObject("Data");
+            id = RequestData.getString("Id");
+
+        } catch (RuntimeException e) {
+            throw new RuntimeException(e);
+        }
+
+        JSONObject jsonBody = new JSONObject();
+        JSONObject innerJson = new JSONObject();
+
+
+        innerJson.put("Id", id);
+        innerJson.put("isParent",isParent);
+
+        jsonBody.put("Data", innerJson);
+
+        Request newRequest = new Request("get", "deleteData", jsonBody);
         return newRequest;
     }
 
@@ -105,10 +181,10 @@ public class ClientManager implements IClientManager{
     @Override
     public Response DeleteData(Request request) {
         Response response = new Response();
-        JSONObject RequestData = null;
+        JSONObject requestData = null;
         try {
-            RequestData = request.body.getJSONObject("Data");
-            String id = RequestData.getString("Id");
+            requestData = request.body.getJSONObject("Data");
+            String id = requestData.getString("Id");
 
         boolean hasData = node.checkForData(id);
 
@@ -118,7 +194,7 @@ public class ClientManager implements IClientManager{
             JSONObject innerJson = new JSONObject();
 
             innerJson.put("Id", id);
-            innerJson.put("Value", "EmptyValue");
+            innerJson.put("Value", "emptyValue");
             innerJson.put("isParent", true);
 
             jsonBody.put("Data", innerJson);
@@ -130,7 +206,7 @@ public class ClientManager implements IClientManager{
             if (response.status.contains("200")) {
                 String IP = response.body.getString("IP");
 
-                Request requestToDelete = generateRequest_DeleteData(request, true);
+                Request requestToDelete = generateRequest_DeleteData(requestData.getString("Value"), true);
 
                 sendRequestToNeighbor(IP, requestToDelete);
             }
@@ -139,13 +215,13 @@ public class ClientManager implements IClientManager{
         }
 
         //delete own data if we have it
-        if (RequestData.getBoolean("isParent")) {
+        if (requestData.getBoolean("isParent")) {
             // if parent ask us to delete, we delete if we can. Will always give 200 even if we dont hold data
             boolean isDeleted = node.deleteDataLocally(id);
 
             // IF we are parent of the data, ask children to delete the data
             // create request for children with isParent=True
-            Request requestForChild = generateRequest_DeleteData(request, false);
+            Request requestForChild = generateRequest_DeleteData_For_Child_Data(request, false);
             // send requests to children
             Response responseLeft = sendRequestToNeighbor(node.neighborLeft.IP, requestForChild);
             Response responseRight = sendRequestToNeighbor(node.neighborRight.IP, requestForChild);

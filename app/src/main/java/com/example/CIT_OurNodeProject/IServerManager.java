@@ -28,7 +28,7 @@ public interface IServerManager {
             throws IOException, JSONException;
         // public Response buildResponseToAddData(Request request) throws IOException, JSONException {
 
-    Response generateResponse_DeleteData(Response response);
+    Response generateResponse_DeleteData(Request request) throws JSONException;
 
 
 
