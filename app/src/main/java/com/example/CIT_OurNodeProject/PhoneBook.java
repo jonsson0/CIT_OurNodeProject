@@ -7,6 +7,14 @@ public class PhoneBook {
 
     ArrayList<String> IPs = new ArrayList<>();
 
+    public PhoneBook(String ... ips){
+        for (String ip: ips ) {
+            this.IPs.add(ip);
+        }
+    }
+    public PhoneBook(){
+
+    }
 
     public PhoneBook copy(){
         PhoneBook newPhonebook = new PhoneBook();
@@ -31,4 +39,23 @@ public class PhoneBook {
         }
         return jsonArrayOfIps.toString();
     }
+
+
+
+    public JSONArray toJsonArray(){
+
+        JSONArray jsonArrayOfIps = new JSONArray();
+        for (String Ip: IPs ) {
+            JSONObject IpAsJson = new JSONObject();
+            try {
+                IpAsJson.put("IP", Ip);
+                jsonArrayOfIps.put(IpAsJson);
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return jsonArrayOfIps;
+    }
+
+
 }
