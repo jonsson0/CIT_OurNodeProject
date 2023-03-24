@@ -317,9 +317,12 @@ public class ServerManager implements IServerManager{
 
                 sendRequestToNeighbor(IP, requestToDelete);
             }
-
+            System.out.println("KATA WANTS THIS PRINT");
             return response;
         }
+        System.out.println("KATA WANTS THIS PRINT #2");
+
+        System.out.println(RequestData.getBoolean("isParent"));
 
         // delete own data if we have it
         if (RequestData.getBoolean("isParent")) {
@@ -330,7 +333,9 @@ public class ServerManager implements IServerManager{
             // create request for children with isParent=True
             Request requestForChild = clientManager.generateRequest_DeleteData_For_Child_Data(request, false);
             // send requests to children
+            System.out.println("Sending request to neighborLeft: " + requestForChild);
             Response responseLeft = sendRequestToNeighbor(node.neighborLeft.IP, requestForChild);
+            System.out.println("Sending request to neighborRight: " + requestForChild);
             Response responseRight = sendRequestToNeighbor(node.neighborRight.IP, requestForChild);
 
             if (responseLeft.status.contains("OK") && responseRight.status.contains("OK")) {
