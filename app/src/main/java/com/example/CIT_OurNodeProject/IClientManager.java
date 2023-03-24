@@ -24,7 +24,7 @@ public interface IClientManager {
     Request generateRequest_AddData(String value, Boolean isParent);
         // public Request buildRequestToAddData(String value, Boolean isParent) {
 
-    Response generateRequest_DeleteData(Request request) throws IOException, JSONException;
+    Response DeleteData(Request request) throws IOException, JSONException;
         // public Response DeleteData(Request request) throws IOException, JSONException {
 
 

@@ -51,7 +51,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Node node;
 
     ApiHandler apiHandler;
-
+    ServerManager serverManager;
+    ClientManager clientManager;
 
     int clientNumber = 0;
     @Override
@@ -97,7 +98,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         node.phoneBookRight.IPs.add(THIS_IP_ADDRESS);
 
 
-
+        serverManager = new ServerManager(node);
+        clientManager = new ClientManager(node);
         apiHandler = new ApiHandler(node);
         //Starting the server thread
         serverThread.start();
@@ -188,7 +190,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     String answer = "";
 
-                    Response response = apiHandler.handleRequestFromClient(requestFromClient, REMOTE_IP_ADDRESS);
+                    Response response = serverManager.handleRequestFromClient(requestFromClient, REMOTE_IP_ADDRESS);
 
                     answer = response.toString();
 
@@ -243,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                  //  Request request = apiHandler.buildRequestToGetData("3");
 
-                    Request request = apiHandler.buildRequestToAddData("645745", true);
+                    Request request = clientManager.generateRequest_AddData("645745", true);
              //   Request request = apiHandler.buildRequestToAddData("321", true);
 
                // Request request = apiHandler.buildRequestToUpdatePhoneBook(node.phoneBookLeft, "left");
@@ -264,7 +266,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 * */
 
-                apiHandler.handleResponseFromServer(request, response, THIS_IP_ADDRESS);
+                clientManager.handleResponseFromServer(request, response);
 
                     cUpdate("Server says: " + messageFromServer);
 //                    waitABit();

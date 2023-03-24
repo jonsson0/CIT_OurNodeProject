@@ -9,6 +9,8 @@ public class Request {
     public String path;
     public JSONObject body;
 
+    public Request(){ }
+
     public Request(String requestString) {
         try {
 
@@ -31,6 +33,18 @@ public class Request {
         this.body = body;
     }
 
+
+    public Request copy(){
+        Request newRequest = new Request();
+        newRequest.body = this.body;
+        newRequest.header = this.header;
+        newRequest.method = method;
+        newRequest.path = path;
+        return newRequest;
+
+    }
+
+
     public String toString() {
         JSONObject requestJson = new JSONObject();
         try {
@@ -41,6 +55,10 @@ public class Request {
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
+
+
+
+
 
         String requestString = requestJson.toString();
 

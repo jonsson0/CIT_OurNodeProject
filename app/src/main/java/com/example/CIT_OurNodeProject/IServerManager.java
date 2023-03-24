@@ -21,7 +21,7 @@ public interface IServerManager {
     Response generateResponse_GetPhonebook(Request request);
         // public Response buildResponseToGetPhonebook() {
 
-    Response enerateResponse_GetData(Request request);
+    Response generateResponse_GetData(Request request);
         // public Response buildResponseToGetData(Response response, Request request) {
 
     Response generateResponse_AddData(Request request)
