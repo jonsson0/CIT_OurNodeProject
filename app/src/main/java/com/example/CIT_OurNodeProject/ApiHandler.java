@@ -1,4 +1,6 @@
-package com.example.CIT_OurNodeProject;
+/*package com.example.CIT_OurNodeProject;
+
+
 
 import org.json.*;
 
@@ -90,7 +92,7 @@ public class ApiHandler {
         return response;
     }
 
-    /** BUILDING RESPONSES **/
+    // BUILDING RESPONSES
 
     public Response buildResponseToGetId(Response response) {
         response.status = "200 OK";
@@ -251,7 +253,7 @@ public class ApiHandler {
     }
 
 
-    /** BUILDING REQUESTS **/
+    // BUILDING REQUESTS
 
     public Request buildRequestToGetData(String value) {
         String hashedValue;
@@ -562,6 +564,7 @@ public class ApiHandler {
                                 response.body = new JSONObject();
                             }
                             */
+                        /*
 
                     System.out.println("Is the copyPhoneBook size == 1? ");
                     if (copyPhonebook.IPs.size() == 1) {
@@ -622,3 +625,4 @@ public class ApiHandler {
         } // else for response.status contain ok)
     } // getDataHandler
 } // ApiHandler
+*/

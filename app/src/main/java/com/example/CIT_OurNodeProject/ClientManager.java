@@ -33,7 +33,7 @@ public class ClientManager implements IClientManager{
                 // Do nothing
                 break;
             case "getdata":
-                handleResponse_GetData(request, response);
+               // handleResponse_GetData(request, response);
                 break;
             case "adddata":
                 // Do nothing
@@ -177,7 +177,7 @@ public class ClientManager implements IClientManager{
 
 
     @Override
-    public Response DeleteData(Request request) {
+    public String DeleteData(Request request) {
         Response response = new Response();
         JSONObject requestData = null;
         try {
@@ -201,7 +201,7 @@ public class ClientManager implements IClientManager{
 
             response = getDataHandler(getDataRequest);
 
-            if (response.status.contains("200")) {
+            if (response.status.contains("OK")) {
                 String IP = response.body.getString("IP");
 
                 Request requestToDelete = generateRequest_DeleteData(requestData.getString("Value"), true);
@@ -209,7 +209,7 @@ public class ClientManager implements IClientManager{
                 sendRequestToNeighbor(IP, requestToDelete);
             }
 
-            return response;
+            return response.toString();
         }
 
         //delete own data if we have it
@@ -221,11 +221,13 @@ public class ClientManager implements IClientManager{
             // create request for children with isParent=True
             Request requestForChild = generateRequest_DeleteData_For_Child_Data(request, false);
             // send requests to children
+            System.out.println("sending request to neighborLeft:" + requestForChild.toString());
             Response responseLeft = sendRequestToNeighbor(node.neighborLeft.IP, requestForChild);
+            System.out.println("sending request to neighborRight:" + requestForChild.toString());
             Response responseRight = sendRequestToNeighbor(node.neighborRight.IP, requestForChild);
 
-            if (responseLeft.status == "200" && responseRight.status == "200") {
-                response = new Response("200", new JSONObject());
+            if (responseLeft.status.contains("OK") && responseRight.status.contains("OK")) {
+                response = new Response("200 OK", new JSONObject());
             } else {
                 response = new Response("400", new JSONObject());
             }
@@ -247,7 +249,7 @@ public class ClientManager implements IClientManager{
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return response;
+        return response.toString();
     }
 
     public Response handleResponse_GetData(Request request, Response response) {
@@ -363,9 +365,9 @@ public class ClientManager implements IClientManager{
 
         Request originalRequest = new Request(request.method, request.path, request.body);
 
-        boolean iHaveTheData = node.checkForData(id);
+      //  boolean iHaveTheData = node.checkForData(id);
 
-        if (iHaveTheData) {
+        if (node.checkForData(id)) {
             System.out.println("Response status contains OK");
 
             JSONObject jsonBody = new JSONObject();
@@ -393,7 +395,7 @@ public class ClientManager implements IClientManager{
 
             return response;
         } else {
-            System.out.println("Response didnt have the Data");
+            System.out.println("I didnt have the Data");
             boolean hasGottenData = false;
             PhoneBook copyPhonebook = node.phoneBookLeft.copy();
 

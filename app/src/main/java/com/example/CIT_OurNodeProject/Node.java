@@ -27,6 +27,7 @@ public class Node {
     public boolean checkForData(String id){
         for (Data data : listOfData) {
             if (data.id.equals(id)) {
+                System.out.println(id);
                 return true;
             }
         }
