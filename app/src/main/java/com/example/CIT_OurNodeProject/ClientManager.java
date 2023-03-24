@@ -353,8 +353,11 @@ public class ClientManager implements IClientManager{
 
         Request originalRequest = new Request(request.method, request.path, request.body);
 
-        if (response.status.contains("OK")) {
+        if (response.status.contains("200 OK")) {
             System.out.println("Response status contains OK");
+
+
+            
             return response;
         } else {
             System.out.println("Response didnt have the Data");
@@ -420,7 +423,7 @@ public class ClientManager implements IClientManager{
                         System.out.println("This is the response we got: " + messageFromServer);
                         response = new Response(messageFromServer);
 
-                        if (response.status.contains("OK")) {
+                        if (response.status.contains("200 OK")) {
                             hasGottenData = true;
 
                             JSONObject jsonBody = new JSONObject();

@@ -305,11 +305,11 @@ public class ServerManager implements IServerManager{
 
             Request getDataRequest = new Request("get", "getData", jsonBody);
 
-            Response responseEmpty = new Response("OK - Test", new JSONObject());
+            Response responseEmpty = new Response("123", new JSONObject());
 
             response = clientManager.getDataHandler(getDataRequest, responseEmpty);
 
-            if (response.status.contains("200")) {
+            if (response.status.contains("200 OK")) {
                 String IP = response.body.getString("IP");
 
                 String value = RequestData.getString("Value");

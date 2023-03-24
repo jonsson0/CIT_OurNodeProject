@@ -525,6 +525,13 @@ public class ApiHandler {
 
         if (response.status.contains("OK")) {
             System.out.println("Response status contains OK");
+
+            try {
+                response.body.put("IP", node.IP);
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+
             return response;
         } else {
             System.out.println("Response didnt have the Data");
