@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     Node node;
 
-//    ApiHandler apiHandler;
+    //    ApiHandler apiHandler;
     ServerManager serverManager;
     ClientManager clientManager;
 
@@ -144,13 +144,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startClientButton.setText("Resend");
             } else{
                 if(!ipInputField.getText().toString().equals(REMOTE_IP_ADDRESS)) {
-                   // String newCommand = ipInputField.getText().toString();
-                   // String[] newCommandList = newCommand.split(",");
-                   // command = HandleApi.createHttpRequest(newCommandList[0], newCommandList[1], newCommandList[2]);
+                    // String newCommand = ipInputField.getText().toString();
+                    // String[] newCommandList = newCommand.split(",");
+                    // command = HandleApi.createHttpRequest(newCommandList[0], newCommandList[1], newCommandList[2]);
 
                 }else{
                     // command = HandleApi.createHttpRequest("Get", "getId", "empty");
-                  //  System.out.println(command);
+                    //  System.out.println(command);
                 }
                 Thread clientThread = new Thread(new MyClientThread());
                 clientThread.start();
@@ -163,39 +163,89 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 submitIP.setEnabled(false);
             }
         } else if (view == getIdButton) {
-            MyClientThread cThread = new MyClientThread();
-            cThread.request = clientManager.generateRequest_GetId();
-            Thread clientThread = new Thread(cThread);
-            clientThread.start();
+            if(ipInputField.getText().toString().equals("")){
+
+                MyClientThread cThread = new MyClientThread();
+                cThread.request = clientManager.generateRequest_GetId();
+                Thread clientThread = new Thread(cThread);
+                clientThread.start();
+            }
         } else if (view == getPhonebookButton) {
-            MyClientThread cThread = new MyClientThread();
-            cThread.request = clientManager.generateRequest_GetPhonebook();
-            Thread clientThread = new Thread(cThread);
-            clientThread.start();
+            if(ipInputField.getText().toString().equals("")){
+
+                MyClientThread cThread = new MyClientThread();
+                cThread.request = clientManager.generateRequest_GetPhonebook();
+                Thread clientThread = new Thread(cThread);
+                clientThread.start();
+            }
 
         } else if (view == updatePhonebookButton) {
-            MyClientThread cThread = new MyClientThread();
-            cThread.request = clientManager.generateRequest_UpdatePhoneBook(node.phoneBookLeft.copy(), "left");
-            Thread clientThread = new Thread(cThread);
-            clientThread.start();
+            String input = ipInputField.getText().toString();
+            String[] newCommandList = input.split(";");
 
-        } else if (view == getDataButton) {
-            MyClientThread cThread = new MyClientThread();
-            cThread.request = clientManager.generateRequest_GetData("3");
-            Thread clientThread = new Thread(cThread);
-            clientThread.start();
+            if (ipInputField.getText().toString().equals("")){
+
+                MyClientThread cThread = new MyClientThread();
+                cThread.request = clientManager.generateRequest_UpdatePhoneBook(node.phoneBookLeft.copy(), "left");
+                Thread clientThread = new Thread(cThread);
+                clientThread.start();
+            } else {
+                MyClientThread cThread = new MyClientThread();
+                cThread.request = clientManager.generateRequest_UpdatePhoneBook(new PhoneBook(newCommandList[0]), newCommandList[1]);
+                Thread clientThread = new Thread(cThread);
+                clientThread.start();
+            }
+
+        }
+        // get data button
+        else if (view == getDataButton) {
+            String input = ipInputField.getText().toString();
+//            String[] newCommandList = input.split(",");
+            if(ipInputField.getText().toString().equals("")){
+                MyClientThread cThread = new MyClientThread();
+                cThread.request = clientManager.generateRequest_GetData("3");
+                Thread clientThread = new Thread(cThread);
+                clientThread.start();
+            } else {
+
+                MyClientThread cThread = new MyClientThread();
+                cThread.request = clientManager.generateRequest_GetData(input);
+                Thread clientThread = new Thread(cThread);
+                clientThread.start();
+
+            }
 
         } else if (view == addDataButton) {
-            MyClientThread cThread = new MyClientThread();
-            cThread.request = clientManager.generateRequest_AddData("data1", false);
-            Thread clientThread = new Thread(cThread);
-            clientThread.start();
+            String input = ipInputField.getText().toString();
+            String[] newCommandList = input.split(";");
+            if(ipInputField.getText().toString().equals("")){
+                MyClientThread cThread = new MyClientThread();
+                cThread.request = clientManager.generateRequest_AddData("data1", false);
+                Thread clientThread = new Thread(cThread);
+                clientThread.start();
+            } else {
+                MyClientThread cThread = new MyClientThread();
+                cThread.request = clientManager.generateRequest_AddData(newCommandList[0],
+                        Boolean.parseBoolean(newCommandList[1]));
+                Thread clientThread = new Thread(cThread);
+                clientThread.start();
+
+            }
 
         } else if (view == deleteDataButton) {
-            MyClientThread cThread = new MyClientThread();
-            cThread.request = clientManager.generateRequest_DeleteData("3", true);
-            Thread clientThread = new Thread(cThread);
-            clientThread.start();
+            String input = ipInputField.getText().toString();
+            String[] newCommandList = input.split(";");
+            if(ipInputField.getText().toString().equals("")){
+                MyClientThread cThread = new MyClientThread();
+                cThread.request = clientManager.generateRequest_DeleteData("3", true);
+                Thread clientThread = new Thread(cThread);
+                clientThread.start();
+            } else {
+                MyClientThread cThread = new MyClientThread();
+                cThread.request = clientManager.generateRequest_DeleteData(newCommandList[0], Boolean.parseBoolean(newCommandList[1]));
+                Thread clientThread = new Thread(cThread);
+                clientThread.start();
+            }
 
         }
 
@@ -239,24 +289,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 //Run conversation
 //                while (carryOn) {
-                    String requestString = instream.readUTF();
+                String requestString = instream.readUTF();
 
-                    System.out.println("Recived requestString:");
-                    System.out.println(requestString);
+                System.out.println("Recived requestString:");
+                System.out.println(requestString);
 
-                    Request requestFromClient = new Request(requestString);
+                Request requestFromClient = new Request(requestString);
 
-                    sUpdate("Client " + number + " requests: " + requestFromClient.toString());
+                sUpdate("Client " + number + " requests: " + requestFromClient.toString());
 
-                    String answer = "";
+                String answer = "";
 
-                    Response response = serverManager.handleRequestFromClient(requestFromClient, REMOTE_IP_ADDRESS);
+                Response response = serverManager.handleRequestFromClient(requestFromClient, REMOTE_IP_ADDRESS);
 
-                    answer = response.toString();
+                answer = response.toString();
 
-                    sUpdate("Server " + number + "responds : " + answer);
-                    outstream.writeUTF(answer);
-                    outstream.flush();
+                sUpdate("Server " + number + "responds : " + answer);
+                outstream.writeUTF(answer);
+                outstream.flush();
 //                    waitABit();
 //                }
                 //Closing everything down
@@ -300,13 +350,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     node.isInNetwork = true;
                 } else {
 
-                cUpdate("CLIENT: starting client socket ");
-                cUpdate("CLIENT: client connected ");
-                Socket connectionToServer = new Socket(REMOTE_IP_ADDRESS, 4444);
+                    cUpdate("CLIENT: starting client socket ");
+                    cUpdate("CLIENT: client connected ");
+                    Socket connectionToServer = new Socket(REMOTE_IP_ADDRESS, 4444);
 
 
-                DataInputStream instream = new DataInputStream(connectionToServer.getInputStream());
-                DataOutputStream out = new DataOutputStream(connectionToServer.getOutputStream());
+                    DataInputStream instream = new DataInputStream(connectionToServer.getInputStream());
+                    DataOutputStream out = new DataOutputStream(connectionToServer.getOutputStream());
 
 //                while (carryOn) {
 
@@ -338,14 +388,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                    throw new RuntimeException(e);
 //                }
 
-              //  Request requestGetData = clientManager.generateRequest_GetData("3");
+                    //  Request requestGetData = clientManager.generateRequest_GetData("3");
 
-                 // Response response123 = clientManager.getDataHandler(requestGetData);
+                    // Response response123 = clientManager.getDataHandler(requestGetData);
 
-                  //  Request request = clientManager.generateRequest_AddData("645745", true);
-             //   Request request = apiHandler.buildRequestToAddData("321", true);
+                    //  Request request = clientManager.generateRequest_AddData("645745", true);
+                    //   Request request = apiHandler.buildRequestToAddData("321", true);
 
-               // Request request = apiHandler.buildRequestToUpdatePhoneBook(node.phoneBookLeft, "left");
+                    // Request request = apiHandler.buildRequestToUpdatePhoneBook(node.phoneBookLeft, "left");
 
 //                    Request request1 = clientManager.joinNetwork(REMOTE_IP_ADDRESS);
 //                Request request = new Request("get", "getphonebook", new JSONObject());
@@ -357,27 +407,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     out.writeUTF(message);
                     out.flush();
                     cUpdate("Client said:      " + message)
-                        ;
+                    ;
                     String messageFromServer = instream.readUTF();
 
-                System.out.println("THIS IS THE MESSAGEFROMSERVER:");
-                System.out.println(messageFromServer);
+                    System.out.println("THIS IS THE MESSAGEFROMSERVER:");
+                    System.out.println(messageFromServer);
 
                     Response response = new Response(messageFromServer);
                     instream.close();
                     out.close();
                     connectionToServer.close();
 
-                clientManager.handleResponseFromServer(request, response);
+                    clientManager.handleResponseFromServer(request, response);
 
                     cUpdate("Server says: " + messageFromServer);
 
 //                    waitABit();
 //                }
 
-                cUpdate("CLIENT: closed inputstream");
-                cUpdate("CLIENT: closed outputstream");
-                cUpdate("CLIENT: closed socket");
+                    cUpdate("CLIENT: closed inputstream");
+                    cUpdate("CLIENT: closed outputstream");
+                    cUpdate("CLIENT: closed socket");
 
                 }
             } catch (IOException e) {

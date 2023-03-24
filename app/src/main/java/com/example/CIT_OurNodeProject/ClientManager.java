@@ -36,7 +36,7 @@ public class ClientManager implements IClientManager{
                 // Do nothing
                 break;
             case "getdata":
-               // handleResponse_GetData(request, response);
+                // handleResponse_GetData(request, response);
                 break;
             case "adddata":
                 // Do nothing
@@ -124,7 +124,7 @@ public class ClientManager implements IClientManager{
             innerJson.put("Id", hashedValue );
             innerJson.put("Value", value);
             innerJson.put("isParent", isParent);
-           innerJson.put("senderIP", node.IP);
+            innerJson.put("senderIP", node.IP);
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
@@ -153,9 +153,9 @@ public class ClientManager implements IClientManager{
 
         try {
             innerJson.put("Id", id);
-        innerJson.put("isParent",isParent);
+            innerJson.put("isParent",isParent);
 
-        jsonBody.put("Data", innerJson);
+            jsonBody.put("Data", innerJson);
 
         } catch (JSONException e) {
             throw new RuntimeException(e);
@@ -200,64 +200,64 @@ public class ClientManager implements IClientManager{
             requestData = request.body.getJSONObject("Data");
             String id = requestData.getString("Id");
 
-        boolean hasData = node.checkForData(id);
+            boolean hasData = node.checkForData(id);
 
-        if (!hasData) {
+            if (!hasData) {
 
-            JSONObject jsonBody = new JSONObject();
-            JSONObject innerJson = new JSONObject();
+                JSONObject jsonBody = new JSONObject();
+                JSONObject innerJson = new JSONObject();
 
-            innerJson.put("Id", id);
-            innerJson.put("Value", "emptyValue");
-            innerJson.put("isParent", true);
+                innerJson.put("Id", id);
+                innerJson.put("Value", "emptyValue");
+                innerJson.put("isParent", true);
 
-            jsonBody.put("Data", innerJson);
+                jsonBody.put("Data", innerJson);
 
-            Request getDataRequest = new Request("get", "getData", jsonBody);
+                Request getDataRequest = new Request("get", "getData", jsonBody);
 
-            response = getDataHandler(getDataRequest);
+                response = getDataHandler(getDataRequest);
 
-            if (response.status.contains("OK")) {
-                String IP = response.body.getString("IP");
+                if (response.status.contains("OK")) {
+                    String IP = response.body.getString("IP");
 
-                Request requestToDelete = generateRequest_DeleteData(requestData.getString("Value"), true);
+                    Request requestToDelete = generateRequest_DeleteData(requestData.getString("Value"), true);
 
-                sendRequestToNeighbor(IP, requestToDelete);
+                    sendRequestToNeighbor(IP, requestToDelete);
+                }
+
+                return response.toString();
             }
 
-            return response.toString();
-        }
+            //delete own data if we have it
+            if (requestData.getBoolean("isParent")) {
+                // if parent ask us to delete, we delete if we can. Will always give 200 even if we dont hold data
+                boolean isDeleted = node.deleteDataLocally(id);
 
-        //delete own data if we have it
-        if (requestData.getBoolean("isParent")) {
-            // if parent ask us to delete, we delete if we can. Will always give 200 even if we dont hold data
-            boolean isDeleted = node.deleteDataLocally(id);
+                // IF we are parent of the data, ask children to delete the data
+                // create request for children with isParent=True
+                Request requestForChild = generateRequest_DeleteData_For_Child_Data(request, false);
+                // send requests to children
+                System.out.println("sending request to neighborLeft:" + requestForChild.toString());
+                Response responseLeft = sendRequestToNeighbor(node.neighborLeft.IP, requestForChild);
+                System.out.println("sending request to neighborRight:" + requestForChild.toString());
+                Response responseRight = sendRequestToNeighbor(node.neighborRight.IP, requestForChild);
 
-            // IF we are parent of the data, ask children to delete the data
-            // create request for children with isParent=True
-            Request requestForChild = generateRequest_DeleteData_For_Child_Data(request, false);
-            // send requests to children
-            System.out.println("sending request to neighborLeft:" + requestForChild.toString());
-            Response responseLeft = sendRequestToNeighbor(node.neighborLeft.IP, requestForChild);
-            System.out.println("sending request to neighborRight:" + requestForChild.toString());
-            Response responseRight = sendRequestToNeighbor(node.neighborRight.IP, requestForChild);
+                if (responseLeft.status.contains("OK") && responseRight.status.contains("OK")) {
+                    response = new Response("200 OK", new JSONObject());
+                } else {
+                    response = new Response("400", new JSONObject());
+                }
 
-            if (responseLeft.status.contains("OK") && responseRight.status.contains("OK")) {
-                response = new Response("200 OK", new JSONObject());
+                if (isDeleted) {
+                    response = new Response("200 - deleted", new JSONObject());
+                } else {
+                    response = new Response("404 Not Found - I dont have it", new JSONObject());
+                }
             } else {
-                response = new Response("400", new JSONObject());
-            }
+                node.neighborRight.deleteDataLocally(id);
+                node.neighborLeft.deleteDataLocally(id);
 
-            if (isDeleted) {
-                response = new Response("200 - deleted", new JSONObject());
-            } else {
-                response = new Response("404 Not Found - I dont have it", new JSONObject());
             }
-        } else {
-            node.neighborRight.deleteDataLocally(id);
-            node.neighborLeft.deleteDataLocally(id);
-
-        }
         } catch (RuntimeException e) {
             throw new RuntimeException(e);
         } catch (JSONException e) {
@@ -381,7 +381,7 @@ public class ClientManager implements IClientManager{
 
         Request originalRequest = new Request(request.method, request.path, request.body);
 
-      //  boolean iHaveTheData = node.checkForData(id);
+        //  boolean iHaveTheData = node.checkForData(id);
 
         if (node.checkForData(id)) {
             System.out.println("Response status contains OK");
@@ -603,9 +603,9 @@ public class ClientManager implements IClientManager{
 
             String responseFromServer = instream_response.readUTF();
             response = new Response(responseFromServer);
-        outstream_request.close();
-        instream_response.close();
-        connectionToServer.close();
+            outstream_request.close();
+            instream_response.close();
+            connectionToServer.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -631,7 +631,7 @@ public class ClientManager implements IClientManager{
             response = new Response(responseFromServer);
             outstream_request.close();
             instream_response.close();
-        connectionToServer.close();
+            connectionToServer.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -655,8 +655,8 @@ public class ClientManager implements IClientManager{
 //                Request request = generateRequest_AddData(data.value, false);
                 Request request = generateRequest_AddData(data.value, false);
 
-    //
-    //            Request request = new Request("get", "updatePhonebook", new JSONObject(newPhonebook);
+                //
+                //            Request request = new Request("get", "updatePhonebook", new JSONObject(newPhonebook);
                 outstream_request.writeUTF(request.toString()); //RIGHT?
                 outstream_request.flush();
 
