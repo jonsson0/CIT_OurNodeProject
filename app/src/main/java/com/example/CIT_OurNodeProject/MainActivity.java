@@ -111,6 +111,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String[] dataToAddList = THIS_IP_ADDRESS.split("\\.");
         Data data = new Data("data" + dataToAddList[dataToAddList.length-1], true);
         node.listOfData.add(data);
+        node.isInNetwork = false;
 //        Data data1 = new Data("1234",true);
 
 
@@ -153,8 +154,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
                     }
                 });
+                t.start();
 //                clientThread.start();
-//                clientinfo += "- - - CLIENT STARTED - - - \n";
+                clientinfo += "- - - CLIENT STARTED - - - \n";
                 startClientButton.setText("Resend");
             } else{
                 if(!ipInputField.getText().toString().equals(REMOTE_IP_ADDRESS)) {
@@ -174,7 +176,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                ip_submitted = true;
             String inputIP = ipInputField.getText().toString();
             if (!inputIP.equals("")){
-                System.out.println("IP" + inputIP);
                 REMOTE_IP_ADDRESS = inputIP;
             } else {
                 REMOTE_IP_ADDRESS = THIS_IP_ADDRESS;
@@ -202,9 +203,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else if (view == updatePhonebookButton) {
             String input = ipInputField.getText().toString();
             String[] newCommandList = input.split(";");
-
             if (ipInputField.getText().toString().equals("")){
-
                 MyClientThread cThread = new MyClientThread();
                 cThread.request = clientManager.generateRequest_UpdatePhoneBook(node.phoneBookLeft.copy(), "left");
                 Thread clientThread = new Thread(cThread);
@@ -227,12 +226,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Thread clientThread = new Thread(cThread);
                 clientThread.start();
             } else {
-
                 MyClientThread cThread = new MyClientThread();
                 cThread.request = clientManager.generateRequest_GetData(input);
                 Thread clientThread = new Thread(cThread);
                 clientThread.start();
-
             }
 
         } else if (view == addDataButton) {
@@ -273,6 +270,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             String rightData = "right neighbor data: " +node.neighborRight.listOfData.toString();
             sUpdate(thisNodeData + leftData + rightData);
             cUpdate(thisNodeData + leftData + rightData);
+        } else if (view == showPhonebookButton) {
+            String thisNodeData = "This node: " + node.phoneBookRight.toString() + "\n";
+            String thisNodePhonebookLeft = "This node: " + node.phoneBookLeft.toString() + "\n";
+            sUpdate(thisNodeData + thisNodePhonebookLeft );
 
         }
 
@@ -288,12 +289,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 while (true) {
                     sUpdate("SERVER: start listening..");
                     Socket clientSocket = serverSocket.accept();
-                    if (!clientSocket.isClosed()){
+//                    if (!clientSocket.isClosed()){
                     sUpdate("SERVER connection accepted");
                     clientNumber++;
                     new RemoteClient(clientSocket, clientNumber).start();
 
-                    }
+//                    }
 
                 }//while listening for clients
 
@@ -348,7 +349,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 client.close();
                 sUpdate("SERVER: Remote client  " + number + "outputstream closed");
             } catch (IOException e) {
-                throw new RuntimeException(e);
+
+//                throw new RuntimeException(e);
             }
         }
 
@@ -377,8 +379,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
             try {
-
+                System.out.println(!node.isInNetwork);
                 if (!node.isInNetwork){
+
+                    sUpdate("WE ARE IN");
                     clientManager.joinNetwork(REMOTE_IP_ADDRESS);
                     node.isInNetwork = true;
                 } else {

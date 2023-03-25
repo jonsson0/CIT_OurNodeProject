@@ -23,6 +23,14 @@ public class PhoneBook {
         return newPhonebook;
     }
 
+    public String toString(){
+        String result = "";
+        for (String string: this.IPs) {
+            result = result + ", " + string;
+        }
+        return result;
+//        return "" + IPs.get(0) + ", " + IPs.get(1)+ ", "  + IPs.get(2);
+    }
 
     public String toJsonArrayString(){
 
