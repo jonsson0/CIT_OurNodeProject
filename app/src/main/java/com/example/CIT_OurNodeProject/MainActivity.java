@@ -102,6 +102,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //Getting the IP address of the device
         THIS_IP_ADDRESS = getLocalIpAddress();
         sUpdate("This IP is " + THIS_IP_ADDRESS);
+        System.out.println("This IP is " + THIS_IP_ADDRESS);
 
         node = new Node(THIS_IP_ADDRESS);
 
@@ -140,8 +141,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (view == startClientButton) {
             if (!clientStarted) {
                 clientStarted = true;
-                clientThread.start();
-                clientinfo += "- - - CLIENT STARTED - - - \n";
+                Thread t = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!node.isInNetwork){
+                            clientManager.joinNetwork(REMOTE_IP_ADDRESS);
+                            node.isInNetwork = true;
+                        }
+                    }
+                });
+//                clientThread.start();
+//                clientinfo += "- - - CLIENT STARTED - - - \n";
                 startClientButton.setText("Resend");
             } else{
                 if(!ipInputField.getText().toString().equals(REMOTE_IP_ADDRESS)) {
@@ -153,16 +163,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     // command = HandleApi.createHttpRequest("Get", "getId", "empty");
                     //  System.out.println(command);
                 }
-                Thread clientThread = new Thread(new MyClientThread());
-                clientThread.start();
+//                Thread clientThread = new Thread(new MyClientThread());
+//                clientThread.start();
             }
         } else if (view == submitIP) {
-            if (!ip_submitted) {
-                ip_submitted = true;
-                REMOTE_IP_ADDRESS = ipInputField.getText().toString();
-                startClientButton.setEnabled(true);
-                submitIP.setEnabled(false);
+//            if (!ip_submitted) {
+//                ip_submitted = true;
+            String inputIP = ipInputField.getText().toString();
+            if (!inputIP.equals("")){
+                System.out.println("IP" + inputIP);
+                REMOTE_IP_ADDRESS = inputIP;
+            } else {
+                REMOTE_IP_ADDRESS = THIS_IP_ADDRESS;
             }
+            startClientButton.setEnabled(true);
+//                submitIP.setEnabled(false);
+//            }
         } else if (view == getIdButton) {
             if(ipInputField.getText().toString().equals("")){
 
@@ -268,13 +284,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 while (true) {
                     sUpdate("SERVER: start listening..");
                     Socket clientSocket = serverSocket.accept();
+                    if (!clientSocket.isClosed()){
                     sUpdate("SERVER connection accepted");
                     clientNumber++;
                     new RemoteClient(clientSocket, clientNumber).start();
 
+                    }
+
                 }//while listening for clients
 
             } catch (IOException e) {
+                System.out.println(e);
                 throw new RuntimeException(e);
             }
         }//run
@@ -349,9 +369,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         Request request;
         @Override
-        public void run() {
+            public void run() {
+
 
             try {
+
                 if (!node.isInNetwork){
                     clientManager.joinNetwork(REMOTE_IP_ADDRESS);
                     node.isInNetwork = true;
@@ -359,54 +381,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     cUpdate("CLIENT: starting client socket ");
                     cUpdate("CLIENT: client connected ");
-                    Socket connectionToServer = new Socket(REMOTE_IP_ADDRESS, 4444);
 
+
+                    Socket connectionToServer = new Socket(REMOTE_IP_ADDRESS, 4444);
 
                     DataInputStream instream = new DataInputStream(connectionToServer.getInputStream());
                     DataOutputStream out = new DataOutputStream(connectionToServer.getOutputStream());
-
-//                while (carryOn) {
-
-                /*
-                // testing updatephonebook
-                PhoneBook copyPhoneBook = new PhoneBook();
-
-                copyPhoneBook.IPs.add("tyooo");
-
-                System.out.println("THIS IS THE BEFORE:");
-                System.out.println(node.phoneBookLeft.IPs);
-
-                Request request = clientManager.generateRequest_UpdatePhoneBook(copyPhoneBook, "left");
-
-                // this should be moved down after we get response
-                System.out.println("THIS IS THE AFTER:");
-                System.out.println(node.phoneBookLeft.IPs);
-                */
-
-//                Request request = new Request("get", "getPhoneBook", new JSONObject());
-//
-//                Request requestAddData = clientManager.generateRequest_AddData("12345", true);
-//
-//
-//                Request requestDeleteData;
-//                try {
-//                    requestDeleteData = clientManager.generateRequest_DeleteData("3", true);
-//                } catch (RuntimeException e) {
-//                    throw new RuntimeException(e);
-//                }
-
-                    //  Request requestGetData = clientManager.generateRequest_GetData("3");
-
-                    // Response response123 = clientManager.getDataHandler(requestGetData);
-
-                    //  Request request = clientManager.generateRequest_AddData("645745", true);
-                    //   Request request = apiHandler.buildRequestToAddData("321", true);
-
-                    // Request request = apiHandler.buildRequestToUpdatePhoneBook(node.phoneBookLeft, "left");
-
-//                    Request request1 = clientManager.joinNetwork(REMOTE_IP_ADDRESS);
-//                Request request = new Request("get", "getphonebook", new JSONObject());
-//                    clientManager.joinNetwork(REMOTE_IP_ADDRESS);
 
 
                     String message = request.toString();
@@ -437,6 +417,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     cUpdate("CLIENT: closed socket");
 
                 }
+
+            }  catch (UnknownHostException uhe) {
+                System.out.println(uhe);
+
+
+
             } catch (IOException e) {
                 e.printStackTrace();
                 throw new RuntimeException(e);

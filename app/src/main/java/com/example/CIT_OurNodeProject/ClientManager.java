@@ -421,6 +421,12 @@ public class ClientManager implements IClientManager{
             while (!hasGottenData) {
                 System.out.println("while we dont have data");
                 String IP = copyPhonebook.IPs.get(0);
+                    if (node.IP.equals(copyPhonebook.IPs.get(0))) {
+                        response = new Response();
+                        response.status = "404 Not Found";
+                        response.body = new JSONObject();
+                        break;
+                    }
                 System.out.println(" the IP is we ask for data now: " + IP);
                 Socket connectionToServer;
                 try {
@@ -433,11 +439,6 @@ public class ClientManager implements IClientManager{
 //                            response = new Response(messageFromServer);
 
                             /*
-                            if (node.IP.equals(copyPhonebook.IPs.get(0))) {
-                                response = new Response();
-                                response.status = "404 Not Found";
-                                response.body = new JSONObject();
-                            }
                             */
 
                     System.out.println("Is the copyPhoneBook size == 1? ");
@@ -473,6 +474,10 @@ public class ClientManager implements IClientManager{
                         String messageFromServer = instream.readUTF();
                         System.out.println("This is the response we got: " + messageFromServer);
                         response = new Response(messageFromServer);
+                        instream.close();
+                        outstream.close();
+                        connectionToServer.close();
+                        copyPhonebook.IPs.remove(0);
 
                         if (response.status.contains("200 OK")) {
                             hasGottenData = true;
@@ -487,6 +492,8 @@ public class ClientManager implements IClientManager{
                             response.body = jsonBody;
                         }
                     } // else for copyPhoneBook == 1
+                    instream.close();
+                    outstream.close();
                     connectionToServer.close();
                     copyPhonebook.IPs.remove(0);
 
@@ -494,6 +501,7 @@ public class ClientManager implements IClientManager{
                     System.out.println("problem is: " + e.toString());
                     throw new RuntimeException(e);
                 }
+
             } // while we havent gotten the data
             return response;
         } // else for response.status contain ok)
