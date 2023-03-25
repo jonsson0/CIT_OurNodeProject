@@ -28,4 +28,9 @@ public class Data {
         }
         return hashedData;
     }
+
+    public String toString(){
+        return this.value;
+    }
+
 }

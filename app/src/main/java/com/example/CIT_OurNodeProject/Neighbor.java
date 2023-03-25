@@ -9,6 +9,11 @@ public class Neighbor {
     ArrayList<Data> listOfData = new ArrayList<Data>();
 
 
+    public void addData(ArrayList<Data> dataToAdd){
+        for (Data data:dataToAdd) {
+            this.listOfData.add(data);
+        }
+    }
 
     public void removeAllData() {
         listOfData.clear();

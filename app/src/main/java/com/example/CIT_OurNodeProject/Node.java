@@ -64,5 +64,14 @@ public class Node {
         return false;
     }
 
+    public void addData(ArrayList<Data> dataToAdd){
+        for (Data data:dataToAdd) {
+            this.listOfData.add(data);
+        }
+    }
+
+    public void addData(Data dataToAdd){
+        this.listOfData.add(dataToAdd);
+    }
 
 }

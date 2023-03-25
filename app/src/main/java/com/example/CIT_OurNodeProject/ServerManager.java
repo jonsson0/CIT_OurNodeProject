@@ -6,8 +6,10 @@ import org.json.JSONObject;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.Socket;
 import java.util.ArrayList;
+
 
 public class ServerManager implements IServerManager{
 
@@ -119,6 +121,13 @@ public class ServerManager implements IServerManager{
                     System.out.println("I got a new phonebook, and I need to swap left neighbor");
                     node.neighborLeft.IP = phoneBook.IPs.get(0);
                     node.neighborLeft.removeAllData();
+//                    node.neighborLeft.
+//                    node.neighborLeft.addData();
+//                    Response getDataResponse = clientManager.sendOutRequest_getData(node.neighborLeft.IP);
+//                    ArrayList<Data> dat = getDataResponse.<>
+
+                    clientManager.sendOutRequest_addData(node.neighborLeft.IP, node.listOfData, false);
+
                 }
                 node.phoneBookLeft = phoneBook;
                 System.out.println("New phonebookLeft: " + node.phoneBookLeft.IPs);
@@ -131,6 +140,7 @@ public class ServerManager implements IServerManager{
                     System.out.println("I got a new phonebook, and I need to swap right neighbor");
                     node.neighborRight.IP = phoneBook.IPs.get(0);
                     node.neighborRight.removeAllData();
+                    clientManager.sendOutRequest_addData(node.neighborRight.IP, node.listOfData, false);
                 }
 
                 node.phoneBookRight = phoneBook;
@@ -180,6 +190,26 @@ public class ServerManager implements IServerManager{
             throw new RuntimeException(e);
         }
         response.body = jsonBody;
+        return response;
+    }
+
+    public Response generateResponse_FixNeighbor(Request request) {
+
+        Response response = new Response();
+
+        String side = "left";
+        JSONObject jsonDataFromRequest;
+
+        try {
+            jsonDataFromRequest = request.body.getJSONObject("Data");
+            side = jsonDataFromRequest.getString("Side");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        clientManager.handleDeadNeighbor(side);
+
+
         return response;
     }
 

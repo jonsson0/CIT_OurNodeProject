@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button startClientButton, submitIP;
     private Button getIdButton, getPhonebookButton, updatePhonebookButton;
     private Button getDataButton, addDataButton, deleteDataButton;
-    private Button showDataButton;
+    private Button showDataButton, showPhonebookButton;
 
     private TextView serverInfoTv, clientInfoTv;
     private EditText ipInputField;
@@ -79,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         addDataButton = findViewById(R.id.addData);
         deleteDataButton = findViewById(R.id.deleteData);
         showDataButton = findViewById(R.id.showData);
+        showPhonebookButton = findViewById(R.id.showPhonebook);
 
 //        private Button getIdButton, getPhonebookButton, updatePhonebook;
 //        private Button getDataButton, addDataButton, deleteDataButton;
@@ -94,6 +95,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         addDataButton.setOnClickListener(this);
         deleteDataButton.setOnClickListener(this);
         getDataButton.setOnClickListener(this);
+        showDataButton.setOnClickListener(this);
+        showPhonebookButton.setOnClickListener(this);
 
         //Setting some UI state
         ipInputField.setHint("Submit IP-address");
@@ -105,13 +108,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         System.out.println("This IP is " + THIS_IP_ADDRESS);
 
         node = new Node(THIS_IP_ADDRESS);
-
-        Data data = new Data("3", true);
-        Data data1 = new Data("1234",true);
-
-
+        String[] dataToAddList = THIS_IP_ADDRESS.split("\\.");
+        Data data = new Data("data" + dataToAddList[dataToAddList.length-1], true);
         node.listOfData.add(data);
-        node.listOfData.add(data1);
+//        Data data1 = new Data("1234",true);
+
+
+//        node.listOfData.add(data1);
         //  System.out.println(data.id);
 
         node.phoneBookLeft.IPs.add(THIS_IP_ADDRESS);
@@ -269,6 +272,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             String leftData = "left neighbor data: " + node.neighborLeft.listOfData.toString()+ "\n";
             String rightData = "right neighbor data: " +node.neighborRight.listOfData.toString();
             sUpdate(thisNodeData + leftData + rightData);
+            cUpdate(thisNodeData + leftData + rightData);
 
         }
 
@@ -404,7 +408,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     instream.close();
                     out.close();
                     connectionToServer.close();
-
                     clientManager.handleResponseFromServer(request, response);
 
                     cUpdate("Server says: " + messageFromServer);
@@ -419,6 +422,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
 
             }  catch (UnknownHostException uhe) {
+                clientManager.findDeadNodeNeighbor(REMOTE_IP_ADDRESS);
+                clientManager.generateRequest_FixNeighbor("left");
                 System.out.println(uhe);
 
 
