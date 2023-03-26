@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -24,30 +25,6 @@ public class ClientManager implements IClientManager{
         this.node = node;
     }
 
-    public Response handleResponseFromServer(Request request, Response response) throws JSONException, IOException {
-
-        switch (request.path.toLowerCase()) {
-            case "getid":
-                // Do nothing
-                break;
-            case "updatephonebook":
-                // Do nothing
-                break;
-            case "getphonebook":
-                // Do nothing
-                break;
-            case "getdata":
-                // handleResponse_GetData(request, response);
-                break;
-            case "adddata":
-                // Do nothing
-                break;
-            default:
-
-                break;
-        }
-        return response;
-    }
 
     public Request generateRequest_GetId(){
         Request request = new Request("get", "getId");
@@ -288,104 +265,6 @@ public class ClientManager implements IClientManager{
         return response.toString();
     }
 
-    public Response handleResponse_GetData(Request request, Response response) {
-
-        System.out.println("Inside getDataHandler");
-
-        Request originalRequest = request.copy();
-
-        if (response.status.contains("OK")) {
-            System.out.println("Response status contains OK");
-            return response;
-        } else {
-            System.out.println("Response didnt have the Data");
-            boolean hasGottenData = false;
-            PhoneBook copyPhonebook = node.phoneBookLeft.copy();
-
-            System.out.println("THIS IS THE IPS:");
-            System.out.println(copyPhonebook.IPs);
-
-            while (!hasGottenData) {
-                System.out.println("while we dont have data");
-                String IP = copyPhonebook.IPs.get(0);
-                System.out.println(" the IP is we ask for data now: " + IP);
-                Socket connectionToServer;
-                try {
-                    connectionToServer = new Socket(IP, 4444);
-                    DataInputStream instream = new DataInputStream(connectionToServer.getInputStream());
-                    DataOutputStream outstream = new DataOutputStream(connectionToServer.getOutputStream());
-
-
-                            /*
-                            if (node.IP.equals(copyPhonebook.IPs.get(0))) {
-                                response = new Response();
-                                response.status = "404 Not Found";
-                                response.body = new JSONObject();
-                            }
-                            */
-
-                    System.out.println("Is the copyPhoneBook size == 1? ");
-                    if (copyPhonebook.IPs.size() == 1) {
-                        System.out.println("The size of copyPhoneBook is 1, we get a new phonebook");
-                        Request phonebookRequest = new Request("get", "getPhoneBook", new JSONObject());
-                        // request = new Request("get", "getPhoneBook", new JSONObject());
-//                        String newMessage = request.toString();
-                        System.out.println("Sending this request: " + phonebookRequest.toString());
-                        outstream.writeUTF(phonebookRequest.toString());
-                        outstream.flush();
-
-                        // TODO implement something to check if response is coming or not if not ask new person
-                        String messageFromServer = instream.readUTF();
-                        System.out.println("This is the response: " + messageFromServer);
-                        response = new Response(messageFromServer);
-
-                        JSONArray jsonPhoneBookCopy;
-                        try {
-                            jsonPhoneBookCopy = response.body.getJSONArray("LeftNeighbors");
-                            for (int i = 0; i < jsonPhoneBookCopy.length(); i++) {
-                                copyPhonebook.IPs.add(jsonPhoneBookCopy.getJSONObject(i).getString("IP"));
-//                                        System.out.println(" - " + copyPhonebook.IPs.get());
-                            }
-                        } catch (JSONException e) {
-                            throw new RuntimeException(e);
-                        }
-                    } else {
-                        System.out.println("The copyPhonebook is not == 1");
-
-                        outstream.writeUTF(originalRequest.toString());
-                        outstream.flush();
-                        System.out.println("This is the request we send: " + originalRequest.toString());
-                        String messageFromServer = instream.readUTF();
-                        System.out.println("This is the response we got: " + messageFromServer);
-                        response = new Response(messageFromServer);
-
-                        if (response.status.contains("OK")) {
-                            hasGottenData = true;
-
-                            JSONObject jsonBody = new JSONObject();
-
-                            try {
-                                jsonBody.put("IP", node.IP);
-                            } catch (JSONException e) {
-                                throw new RuntimeException(e);
-                            }
-                            response.body = jsonBody;
-                        }
-                    } // else for copyPhoneBook == 1
-                    connectionToServer.close();
-                    instream.close();
-                    outstream.close();
-                    copyPhonebook.IPs.remove(0);
-
-                } catch (IOException e) {
-                    System.out.println("problem is: " + e.toString());
-                    throw new RuntimeException(e);
-                }
-            } // while we havent gotten the data
-            return response;
-        } // else for response.status contain ok)
-    } // getDataHandler
-
 
     public Response getDataHandler(Request request) {
 
@@ -402,8 +281,6 @@ public class ClientManager implements IClientManager{
         System.out.println("Inside getDataHandler");
 
         Request originalRequest = new Request(request.method, request.path, request.body);
-
-        //  boolean iHaveTheData = node.checkForData(id);
 
         if (node.checkForData(id)) {
             System.out.println("Response status contains OK");
@@ -456,12 +333,6 @@ public class ClientManager implements IClientManager{
                     DataInputStream instream = new DataInputStream(connectionToServer.getInputStream());
                     DataOutputStream outstream = new DataOutputStream(connectionToServer.getOutputStream());
 
-//                            System.out.println(instream.readUTF());
-//                            String messageFromServer = instream.readUTF();
-//                            response = new Response(messageFromServer);
-
-                            /*
-                            */
 
                     System.out.println("Is the copyPhoneBook size == 1? ");
                     if (copyPhonebook.IPs.size() == 1) {
@@ -542,7 +413,6 @@ public class ClientManager implements IClientManager{
 
             connectionToNeighbor.close();
 
-            // DataInputStream instream = new DataInputStream(connectionToNeighbor.getInputStream());
             String value=request.body.getJSONObject("Data").getString("Value");
             JSONObject responseObject=new JSONObject();
             responseObject.put("Added",value);
@@ -585,6 +455,7 @@ public class ClientManager implements IClientManager{
         System.out.println("invitersLeftPhonebook.IPs.get(0).equals(inviterIP): " + invitersLeftPhonebook.IPs.get(0).equals(inviterIP));
         System.out.println("inviterIP: " + inviterIP);
 
+        // If there was only 1 node before
         if (invitersLeftPhonebook.IPs.get(0).equals(inviterIP)){
             System.out.println("HAPPENED");
             newInviterPhonebook                 = new PhoneBook(node.IP, inviterIP, node.IP);
@@ -597,6 +468,7 @@ public class ClientManager implements IClientManager{
             node.phoneBookLeft = new PhoneBook(inviterIP,node.IP, inviterIP );
 //            node.phoneBookLeft  = invitersLeftPhonebook.copy();
 
+        // If there were only 2 node before
         } else if (invitersLeftPhonebook.IPs.get(1).equals(inviterIP)) {
             newInviterPhonebook = new PhoneBook(invitersLeftPhonebook.IPs.get(0), node.IP, inviterIP);
             newInviterPhonebookRight = new PhoneBook(node.IP, invitersLeftPhonebook.IPs.get(0), inviterIP);
@@ -679,9 +551,9 @@ public class ClientManager implements IClientManager{
 
     }
 
-    public Response sendOutRequest_getPhonebook(String targetIP){
+    public Response sendOutRequest_getPhonebook(String targetIP) {
         Socket connectionToServer = null;
-        Response response;
+        Response response = new Response();
         try {
             connectionToServer = new Socket(targetIP, 4444);
             DataOutputStream outstream_request = new DataOutputStream(connectionToServer.getOutputStream());
@@ -708,9 +580,8 @@ public class ClientManager implements IClientManager{
             connectionToServer = new Socket(targetIP, 4444);
             DataOutputStream outstream_request = new DataOutputStream(connectionToServer.getOutputStream());
             DataInputStream instream_response = new DataInputStream(connectionToServer.getInputStream());
-//            Request request = new Request("get", "getPhonebook", new JSONObject());
             Request request = new Request("get", "getData");
-            outstream_request.writeUTF(request.toString()); //RIGHT?
+            outstream_request.writeUTF(request.toString());
             outstream_request.flush();
 
             String responseFromServer = instream_response.readUTF();
@@ -733,12 +604,9 @@ public class ClientManager implements IClientManager{
             DataOutputStream outstream_request = new DataOutputStream(connectionToServer.getOutputStream());
             DataInputStream instream_response = new DataInputStream(connectionToServer.getInputStream());
             Request request = generateRequest_UpdatePhoneBook(newPhonebook, side);
-//            Request request = generateRequest_AddData("33322", false);
 
 //
-//            Request request = new Request("get", "updatePhonebook", new JSONObject(newPhonebook);
-            System.out.println("IN SEND UPDATE PHONEBOOK REQUEST:  " + newPhonebook.toString());
-            outstream_request.writeUTF(request.toString()); //RIGHT?
+            outstream_request.writeUTF(request.toString());
             outstream_request.flush();
 
             String responseFromServer = instream_response.readUTF();
@@ -760,17 +628,13 @@ public class ClientManager implements IClientManager{
             connectionToServer = new Socket(targetIP, 4444);
             DataOutputStream outstream_request = new DataOutputStream(connectionToServer.getOutputStream());
             DataInputStream instream_response = new DataInputStream(connectionToServer.getInputStream());
-//            Request request = generateRequest_UpdatePhoneBook(newPhonebook, side);
             for (Data data : dataList) {
                 connectionToServer = new Socket(targetIP, 4444);
                 outstream_request = new DataOutputStream(connectionToServer.getOutputStream());
                 instream_response = new DataInputStream(connectionToServer.getInputStream());
 
-//                Request request = generateRequest_AddData(data.value, false);
                 Request request = generateRequest_AddData(data.value, false);
 
-                //
-                //            Request request = new Request("get", "updatePhonebook", new JSONObject(newPhonebook);
                 outstream_request.writeUTF(request.toString()); //RIGHT?
                 outstream_request.flush();
 
@@ -786,29 +650,22 @@ public class ClientManager implements IClientManager{
             throw new RuntimeException(e);
         }
 
-
-
-//        return response;
     }
 
-    public void findDeadNodeNeighbor(String deadIP){
-//        phonebook = requestGetPhonebook(leftNeighbor):
-        PhoneBook phonebook = sendOutRequest_getPhonebook(node.neighborLeft.IP).retrievePhonebook("left");
+    public String findDeadNodeNeighbor(String deadIP) throws ConnectException {
+//        PhoneBook phonebook = sendOutRequest_getPhonebook(node.neighborLeft.IP).retrievePhonebook("left");
+        PhoneBook phonebook = sendOutRequest_getPhonebook(node.neighborRight.IP).retrievePhonebook("right");
         String requestedNodeIP = phonebook.IPs.get(0);
         while (true){
-            phonebook = sendOutRequest_getPhonebook(requestedNodeIP).retrievePhonebook("left");
+//            phonebook = sendOutRequest_getPhonebook(requestedNodeIP).retrievePhonebook("left");
+            phonebook = sendOutRequest_getPhonebook(requestedNodeIP).retrievePhonebook("right");
             if (phonebook.IPs.get(0) == deadIP) break;
             requestedNodeIP = phonebook.IPs.get(0);
+
         }
         String targetIP = requestedNodeIP;
-
+        return targetIP;
 //
-//        requstedsLeftNeighbor  =  phonebook.left.get(0);
-//        while requstedsLeftNeighbor.ip != B.ip:
-//        phonebook = requestGetPhonebook(requstedsLeftNeighbor):
-//        requstedsLeftNeighbor  =  phonebook.left.get(0);
-//        H = deadsRightNeighbor = requstedsLeftNeighbor:
-//        requestedsLeft.sendRequest_fixDeadNeighbor(<side>, H.ip);
 
 
 
@@ -821,6 +678,42 @@ public class ClientManager implements IClientManager{
 //    public void handleDeadNeighbor(String deadIP){
     public void handleDeadNeighbor(String side){
 
+        // dead nodes other neighbor
+        String newNeighborIp = node.phoneBookRight.IPs.get(1);
+        Response newNeighborIp_phonebook = sendOutRequest_getPhonebook(newNeighborIp);
+
+        // dead nodes other neighbor's phonebook and neighbors
+        PhoneBook newNeighborRightPhonebook = newNeighborIp_phonebook.retrievePhonebook("Right");
+        String newNeighborNeighborIP = newNeighborRightPhonebook.IPs.get(0); // "Other
+        String newNeighbor2ndRightNeighborIP = newNeighborRightPhonebook.IPs.get(1);
+
+        // Updating own phonebook and neighbor
+        node.phoneBookRight = new PhoneBook(node.phoneBookRight.IPs.get(1), node.phoneBookRight.IPs.get(2), newNeighbor2ndRightNeighborIP);
+        node.addData(node.neighborRight.listOfData);
+        node.neighborRight.removeAllData();
+        node.neighborRight.IP = newNeighborIp;
+        PhoneBook newNeighborNewPhonebook = new PhoneBook(node.IP, node.phoneBookLeft.IPs.get(0), node.phoneBookLeft.IPs.get(1));
+        sendOutRequest_updatePhonebook(newNeighborIp, newNeighborNewPhonebook, "left");
+
+        sendOutRequest_updatePhonebook(newNeighborNeighborIP,
+                new PhoneBook(newNeighborIp, node.IP, node.neighborLeft.IP),
+                "left");
+
+        sendOutRequest_updatePhonebook(newNeighbor2ndRightNeighborIP,
+                new PhoneBook(newNeighborNeighborIP, newNeighborIp, node.IP),
+                "left");
+
+        sendOutRequest_updatePhonebook(node.neighborLeft.IP,
+                new PhoneBook(node.IP, newNeighborIp, newNeighborNeighborIP),
+                "right");
+
+        sendOutRequest_updatePhonebook(node.phoneBookLeft.IPs.get(1),
+                new PhoneBook(newNeighborIp, node.IP, newNeighborIp),
+                "right");
+
+        System.out.println("Node handling dead neighbor" + node.IP);
+        
+        /*
         // dead nodes other neighbor
         String newNeighborIp = node.phoneBookLeft.IPs.get(1);
         Response newNeighborIp_phonebook = sendOutRequest_getPhonebook(newNeighborIp);
@@ -856,6 +749,9 @@ public class ClientManager implements IClientManager{
 
         System.out.println("Node handling dead neighbor" + node.IP);
 
+        
+        * 
+        * */
 
 
         /*

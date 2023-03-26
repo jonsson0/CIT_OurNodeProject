@@ -8,13 +8,6 @@ public interface IClientManager {
 
     Node node = null;
 
-
-
-    Response handleResponseFromServer
-            (Request request, Response response)
-            throws JSONException, IOException;
-
-
     Request generateRequest_UpdatePhoneBook(PhoneBook phoneBook, String side);
         // public Request buildRequestToUpdatePhoneBook(PhoneBook phoneBook, String side) {
 

@@ -18,6 +18,7 @@ import org.json.JSONException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -352,41 +353,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         try {
             address = InetAddress.getByAddress(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(ipInt).array()).getHostAddress();
         } catch (UnknownHostException e) {
+            System.out.println("GET LOCAL IP?");
             throw new RuntimeException(e);
         }
         return address;
     }
 
     class MyClientThread implements Runnable {
-
         Request request;
         @Override
             public void run() {
-            try {
-//                System.out.println(!node.isInNetwork);
-//                if (!node.isInNetwork){
-//
-//                    sUpdate("WE ARE IN");
-//                    clientManager.joinNetwork(REMOTE_IP_ADDRESS);
-//                    node.isInNetwork = true;
-//                } else {
-
+            try  {
                     cUpdate("CLIENT: starting client socket ");
                     cUpdate("CLIENT: client connected ");
 
 
+
+
+
                     Socket connectionToServer = new Socket(REMOTE_IP_ADDRESS, 4444);
-
-                    DataInputStream instream = new DataInputStream(connectionToServer.getInputStream());
                     DataOutputStream out = new DataOutputStream(connectionToServer.getOutputStream());
-
-
+                    DataInputStream instream = new DataInputStream(connectionToServer.getInputStream());
                     String message = request.toString();
 
                     out.writeUTF(message);
                     out.flush();
-                    cUpdate("Client said:      " + message)
-                    ;
+                    cUpdate("Client said:      " + message);
                     String messageFromServer = instream.readUTF();
 
                     System.out.println("THIS IS THE MESSAGEFROMSERVER:");
@@ -396,7 +388,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     instream.close();
                     out.close();
                     connectionToServer.close();
-                    clientManager.handleResponseFromServer(request, response);
 
                     cUpdate("Server says: " + messageFromServer);
 
@@ -404,20 +395,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     cUpdate("CLIENT: closed outputstream");
                     cUpdate("CLIENT: closed socket");
 
-//                }
+            // Part of what how to handle someone leaving
+            /*
+            *
+            } catch (ConnectException uhe) {
+                System.out.println("NO CONNECTION");
+                try {
 
-            }  catch (UnknownHostException uhe) {
-                clientManager.findDeadNodeNeighbor(REMOTE_IP_ADDRESS);
-                clientManager.generateRequest_FixNeighbor("left");
-                System.out.println(uhe);
+                    String ip = clientManager.findDeadNodeNeighbor(REMOTE_IP_ADDRESS);
+                    Socket connectionToServer = new Socket(ip, 4444);
+                    DataOutputStream out = new DataOutputStream(connectionToServer.getOutputStream());
+                    String message = request.toString();
 
+                    out.writeUTF(message);
+                    out.flush();
 
-
+                    out.close();
+                    connectionToServer.close();
+                    clientManager.generateRequest_FixNeighbor("left");
+                }  catch (ConnectException uhe2) {
+                    System.out.println("NO CONNECTION2");
+                } catch (UnknownHostException e) {
+                    throw new RuntimeException(e);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            * */
             } catch (IOException e) {
                 e.printStackTrace();
-                throw new RuntimeException(e);
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
+//                throw new RuntimeException(e);
             }
 
         }//run()
