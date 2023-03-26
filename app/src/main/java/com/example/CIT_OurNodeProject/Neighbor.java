@@ -8,10 +8,6 @@ public class Neighbor  {
 
     ArrayList<Data> listOfData = new ArrayList<Data>();
 
-    public Neighbor(String IP) {
-        this.IP = IP;
-    }
-
     public Neighbor() {
     }
     public boolean hasData(Data data){

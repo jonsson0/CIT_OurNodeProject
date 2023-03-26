@@ -11,7 +11,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 
-public class ServerManager implements IServerManager{
+public class ServerManager {
 
 
     Node node;
@@ -24,7 +24,6 @@ public class ServerManager implements IServerManager{
     }
 
     // Take any request and call the correct request handle methods
-    @Override
     public Response handleRequestFromClient(Request request, String clientIP){
         Response response = new Response();
 
@@ -70,7 +69,6 @@ public class ServerManager implements IServerManager{
     }
 
     // Return ID
-    @Override
     public Response generateResponse_GetId() {
         Response response = new Response();
         response.status = "200 OK";
@@ -87,7 +85,6 @@ public class ServerManager implements IServerManager{
     }
 
     // Method for handling update phonebook requests
-    @Override
     public Response generateResponse_UpdatePhonebook(Request request) {
 
         // TODO check if request is correct
@@ -100,7 +97,6 @@ public class ServerManager implements IServerManager{
         JSONArray jsonArrayOfIP;
         JSONObject jsonBodyData;
         PhoneBook phoneBook = new PhoneBook();
-        System.out.println("BEFORE TRY");
         // Getting side and phonebook from the request:
         try {
             // outer most layer of json
@@ -163,7 +159,6 @@ public class ServerManager implements IServerManager{
         return response;
     }
 
-    @Override
     public Response generateResponse_GetPhonebook(Request request) {
         Response response = new Response();
 
@@ -221,7 +216,6 @@ public class ServerManager implements IServerManager{
         return response;
     }
 
-    @Override
     public Response generateResponse_GetData(Request request) {
 
         Response response = new Response();
@@ -237,7 +231,6 @@ public class ServerManager implements IServerManager{
         }
 
         for (Data data : node.listOfData) {
-            System.out.println(data.id);
             if (data.id.equals(id)) {
                 System.out.println("into we have the data");
                 JSONObject jsonBody = new JSONObject();
@@ -263,7 +256,6 @@ public class ServerManager implements IServerManager{
         return response;
     }
 
-    @Override
     public Response generateResponse_AddData(Request request) throws IOException, JSONException {
 
         JSONObject requestData = null;
@@ -295,7 +287,6 @@ public class ServerManager implements IServerManager{
                 return response;
             } else if(isParent){
                 //Adds to own
-                System.out.println("REQUEST TO PARENTS:");
 
                 Data data = new Data(value,true);
                 node.listOfData.add(data);
@@ -326,7 +317,6 @@ public class ServerManager implements IServerManager{
         return response;
     }
 
-    @Override
     public Response generateResponse_DeleteData(Request request) throws JSONException  {
 
         JSONObject RequestData = request.body.getJSONObject("Data");
@@ -359,10 +349,8 @@ public class ServerManager implements IServerManager{
 
                 sendRequestToNeighbor(IP, requestToDelete);
             }
-            System.out.println("KATA WANTS THIS PRINT");
             return response;
         }
-        System.out.println("KATA WANTS THIS PRINT #2");
 
         System.out.println(RequestData.getBoolean("isParent"));
 
@@ -409,10 +397,6 @@ public class ServerManager implements IServerManager{
             // TODO: if we have time actaully get the response instead of making a "fake" one
 
             connectionToNeighbor.close();
-
-            // DataInputStream instream = new DataInputStream(connectionToNeighbor.getInputStream());
-           // String value = request.body.getJSONObject("Data").getString("Value");
-           // responseObject.put("Added", value);
 
             response = new Response("200 OK", new JSONObject());
 

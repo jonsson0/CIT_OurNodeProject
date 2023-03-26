@@ -1,7 +1,5 @@
 package com.example.CIT_OurNodeProject;
 
-import android.provider.ContactsContract;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -13,9 +11,8 @@ import java.net.ConnectException;
 import java.net.Socket;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.stream.DoubleStream;
 
-public class ClientManager implements IClientManager{
+public class ClientManager {
 
     Node node;
 
@@ -35,7 +32,6 @@ public class ClientManager implements IClientManager{
         Request request = new Request("get", "getPhonebook");
         return request;
     }
-    @Override
     public Request generateRequest_UpdatePhoneBook(PhoneBook phoneBook, String side) {
         String jsonArrayStringOfPhoneBook = phoneBook.toJsonArrayString();
 
@@ -73,7 +69,6 @@ public class ClientManager implements IClientManager{
     }
 
 
-    @Override
     public Request generateRequest_GetData(String value) {
         String hashedValue;
 
@@ -104,7 +99,6 @@ public class ClientManager implements IClientManager{
         return request;
     }
 
-    @Override
     public Request generateRequest_AddData(String value, Boolean isParent) {
         String hashedValue;
 
@@ -189,7 +183,6 @@ public class ClientManager implements IClientManager{
     }
 
 
-    @Override
     public String DeleteData(Request request) {
         Response response = new Response();
         JSONObject requestData = null;
@@ -278,7 +271,6 @@ public class ClientManager implements IClientManager{
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
-        System.out.println("Inside getDataHandler");
 
         Request originalRequest = new Request(request.method, request.path, request.body);
 
@@ -314,9 +306,6 @@ public class ClientManager implements IClientManager{
             boolean hasGottenData = false;
             PhoneBook copyPhonebook = node.phoneBookLeft.copy();
 
-            System.out.println("THIS IS THE IPS:");
-            System.out.println(copyPhonebook.IPs);
-
             while (!hasGottenData) {
                 System.out.println("while we dont have data");
                 String IP = copyPhonebook.IPs.get(0);
@@ -326,7 +315,6 @@ public class ClientManager implements IClientManager{
                         response.body = new JSONObject();
                         break;
                     }
-                System.out.println(" the IP is we ask for data now: " + IP);
                 Socket connectionToServer;
                 try {
                     connectionToServer = new Socket(IP, 4444);
@@ -334,7 +322,6 @@ public class ClientManager implements IClientManager{
                     DataOutputStream outstream = new DataOutputStream(connectionToServer.getOutputStream());
 
 
-                    System.out.println("Is the copyPhoneBook size == 1? ");
                     if (copyPhonebook.IPs.size() == 1) {
                         System.out.println("The size of copyPhoneBook is 1, we get a new phonebook");
                         request = new Request("get", "getPhoneBook", new JSONObject());
@@ -353,13 +340,11 @@ public class ClientManager implements IClientManager{
                             jsonPhoneBookCopy = response.body.getJSONArray("LeftNeighbors");
                             for (int i = 0; i < jsonPhoneBookCopy.length(); i++) {
                                 copyPhonebook.IPs.add(jsonPhoneBookCopy.getJSONObject(i).getString("IP"));
-//                                        System.out.println(" - " + copyPhonebook.IPs.get());
                             }
                         } catch (JSONException e) {
                             throw new RuntimeException(e);
                         }
                     } else {
-                        System.out.println("The copyPhonebook is not == 1");
 
                         outstream.writeUTF(originalRequest.toString());
                         outstream.flush();
@@ -419,8 +404,6 @@ public class ClientManager implements IClientManager{
             response = new Response("200 OK", responseObject);
             outputStream.close();
 
-
-
         }catch (Exception e){
             response = new Response("400", new JSONObject());
 
@@ -466,7 +449,6 @@ public class ClientManager implements IClientManager{
             node.neighborLeft.IP = inviterIP;
             node.neighborRight.IP = inviterIP;
             node.phoneBookLeft = new PhoneBook(inviterIP,node.IP, inviterIP );
-//            node.phoneBookLeft  = invitersLeftPhonebook.copy();
 
         // If there were only 2 node before
         } else if (invitersLeftPhonebook.IPs.get(1).equals(inviterIP)) {
@@ -635,11 +617,10 @@ public class ClientManager implements IClientManager{
 
                 Request request = generateRequest_AddData(data.value, false);
 
-                outstream_request.writeUTF(request.toString()); //RIGHT?
+                outstream_request.writeUTF(request.toString());
                 outstream_request.flush();
 
                 String responseFromServer = instream_response.readUTF();
-                System.out.println("HELLO");
                 response = new Response(responseFromServer);
             }
             outstream_request.close();
@@ -712,102 +693,7 @@ public class ClientManager implements IClientManager{
                 "right");
 
         System.out.println("Node handling dead neighbor" + node.IP);
-        
-        /*
-        // dead nodes other neighbor
-        String newNeighborIp = node.phoneBookLeft.IPs.get(1);
-        Response newNeighborIp_phonebook = sendOutRequest_getPhonebook(newNeighborIp);
 
-        // dead nodes other neighbor's phonebook and neighbors
-        PhoneBook newNeighborLeftPhonebook = newNeighborIp_phonebook.retrievePhonebook("left");
-        String newNeighborNeighborIP = newNeighborLeftPhonebook.IPs.get(0); // "Other
-        String newNeighbor2ndLeftNeighborIP = newNeighborLeftPhonebook.IPs.get(1);
-
-        // Updating own phonebook and neighbor
-        node.phoneBookLeft = new PhoneBook(node.phoneBookLeft.IPs.get(1), node.phoneBookLeft.IPs.get(2), newNeighbor2ndLeftNeighborIP);
-        node.addData(node.neighborLeft.listOfData);
-        node.neighborLeft.removeAllData();
-        node.neighborLeft.IP = newNeighborIp;
-        PhoneBook newNeighborNewPhonebook = new PhoneBook(node.IP, node.phoneBookRight.IPs.get(0), node.phoneBookRight.IPs.get(1));
-        sendOutRequest_updatePhonebook(newNeighborIp, newNeighborNewPhonebook, "right");
-
-        sendOutRequest_updatePhonebook(newNeighborNeighborIP,
-                new PhoneBook(newNeighborIp, node.IP, node.neighborRight.IP),
-                "right");
-
-        sendOutRequest_updatePhonebook(newNeighbor2ndLeftNeighborIP,
-                new PhoneBook(newNeighborNeighborIP, newNeighborIp, node.IP),
-                "right");
-
-        sendOutRequest_updatePhonebook(node.neighborRight.IP,
-                new PhoneBook(node.IP, newNeighborIp, newNeighborNeighborIP),
-                "left");
-
-        sendOutRequest_updatePhonebook(node.phoneBookRight.IPs.get(1),
-                new PhoneBook(newNeighborIp, node.IP, newNeighborIp),
-                "left");
-
-        System.out.println("Node handling dead neighbor" + node.IP);
-
-        
-        * 
-        * */
-
-
-        /*
-        Response phonebookResponse_Inviter = sendOutRequest_getPhonebook(inviterIP);
-
-        // saving ips from invter's left phonebook
-        PhoneBook invitersLeftPhonebook = phonebookResponse_Inviter.retrievePhonebook("left");
-        String invitersLeftNeighborIP = invitersLeftPhonebook.IPs.get(0); // "Other
-        String inviters2ndLeftNeighborIP = invitersLeftPhonebook.IPs.get(1);
-
-        // saving ips from invter's right phonebook
-        PhoneBook invitersRightPhonebook = phonebookResponse_Inviter.retrievePhonebook("right");
-        String invitersRightNeighborIP =  invitersRightPhonebook.IPs.get(0);
-        String inviters2ndRightNeighborIP =  invitersRightPhonebook.IPs.get(1);
-
-
-        node.phoneBookLeft  = invitersLeftPhonebook.copy();
-        node.phoneBookRight = new PhoneBook(inviterIP,invitersRightNeighborIP, inviters2ndRightNeighborIP );
-
-
-        PhoneBook newInviterPhonebook = new PhoneBook(node.IP, invitersLeftNeighborIP, inviters2ndLeftNeighborIP);
-        Response updatePhonebookResponse = sendOutRequest_updatePhonebook(inviterIP, newInviterPhonebook, "left");
-
-        PhoneBook newInvitersRightNeighborPhonebook = new PhoneBook(inviterIP, node.IP, invitersLeftNeighborIP);
-        Response updatePhonebookResponseRight = sendOutRequest_updatePhonebook(invitersRightNeighborIP, newInvitersRightNeighborPhonebook, "left");
-
-        PhoneBook newInviters2ndRightNeighborPhonebook = new PhoneBook(invitersLeftNeighborIP, inviterIP, node.IP);
-        Response updatePhonebookResponseRightRight = sendOutRequest_updatePhonebook(inviters2ndRightNeighborIP, newInviters2ndRightNeighborPhonebook, "left");
-
-        String otherIP = invitersLeftNeighborIP;
-        Response phonebookResponse_Other = sendOutRequest_getPhonebook(otherIP);
-
-        // saving ips from other's left phonebook
-        PhoneBook othersLeftPhonebook = phonebookResponse_Inviter.retrievePhonebook("left");
-        String othersLeftNeighborIP = invitersLeftPhonebook.IPs.get(0); // "Other
-        String others2ndLeftNeighborIP = invitersLeftPhonebook.IPs.get(1);
-
-        // saving ips from other's right phonebook
-        PhoneBook othersRightPhonebook = phonebookResponse_Inviter.retrievePhonebook("right");
-        String othersRightNeighborIP =  invitersRightPhonebook.IPs.get(0);
-        String others2ndRightNeighborIP =  invitersRightPhonebook.IPs.get(1);
-
-        // Handling phonebooks to the left
-        PhoneBook newOtherPhonebook = new PhoneBook(node.IP, inviterIP, invitersRightNeighborIP);
-        Response updatePhonebookResponseOther = sendOutRequest_updatePhonebook(otherIP, newOtherPhonebook, "right");
-
-        PhoneBook newOthersLeftNeighborPhonebook = new PhoneBook(otherIP, node.IP, inviterIP);
-        Response updatePhonebookResponseLeft = sendOutRequest_updatePhonebook(othersRightNeighborIP, newOthersLeftNeighborPhonebook, "right");
-
-        PhoneBook newOthers2ndLeftNeighborPhonebook = new PhoneBook(othersRightNeighborIP, otherIP, node.IP);
-        Response updatePhonebookResponseLeftLeft = sendOutRequest_updatePhonebook(others2ndRightNeighborIP, newOthers2ndLeftNeighborPhonebook, "right");
-
-        // ADD DATA
-        sendOutRequest_addData(inviterIP, node.listOfData, false );
-        sendOutRequest_addData(otherIP, node.listOfData, false );
-        * */
 
     }
 
