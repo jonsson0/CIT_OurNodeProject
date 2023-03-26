@@ -31,10 +31,12 @@ public class ServerManager implements IServerManager{
                 response = generateResponse_GetId();
                 break;
             case "updatephonebook":
+                System.out.println("UPDATEPHONEBOOK");
                 response = generateResponse_UpdatePhonebook(request);
                 break;
             case "getphonebook":
                 response = generateResponse_GetPhonebook(request);
+                System.out.println("GETPHONEBOOK");
                 break;
             case "getdata":
                 response = generateResponse_GetData(request);
@@ -92,7 +94,7 @@ public class ServerManager implements IServerManager{
         JSONArray jsonArrayOfIP;
         JSONObject jsonBodyData;
         PhoneBook phoneBook = new PhoneBook();
-
+        System.out.println("BEFORE TRY");
         // Getting side and phonebook from the request:
         try {
             // outer most layer of json
@@ -101,7 +103,7 @@ public class ServerManager implements IServerManager{
             // inner json
             String side = jsonBodyData.getString("Side");
             jsonArrayOfIP = new JSONArray(jsonBodyData.getString("PhoneBook"));
-
+            System.out.println("pqetrjfioæw4etwioiyherjieropjityjiotjioytuioe" + jsonArrayOfIP.get(0));
             // foreach json in jsonArrayOfIP add it to the new phonebook
             for (int i = 0; i < jsonArrayOfIP.length(); i++) {
 
@@ -148,6 +150,7 @@ public class ServerManager implements IServerManager{
             }
 
         } catch (JSONException e) {
+            System.out.println(e);
             throw new RuntimeException(e);
         }
 
@@ -271,9 +274,11 @@ public class ServerManager implements IServerManager{
 
                 String senderIP = requestData.getString("senderIP");
 
-                if (senderIP.equals(node.neighborLeft.IP)) {
+                if (senderIP.equals(node.neighborLeft.IP)
+                        && !node.neighborLeft.hasData(data)) {
                     node.neighborLeft.listOfData.add(data);
-                } else if (senderIP.equals(node.neighborRight.IP)) {
+                } else if (senderIP.equals(node.neighborRight.IP)
+                        && !node.neighborRight.hasData(data)) {
                     node.neighborRight.listOfData.add(data);
                 }
 
@@ -299,7 +304,7 @@ public class ServerManager implements IServerManager{
 
                 Response r1 = sendRequestToNeighbor(node.neighborLeft.IP,requestForNeighbor);
                 System.out.println("PASSING ONTO FIRST CHILD" + requestForNeighbor.toString());
-                Response r2 = sendRequestToNeighbor(node.neighborLeft.IP,requestForNeighbor);
+                Response r2 = sendRequestToNeighbor(node.neighborRight.IP,requestForNeighbor);
                 System.out.println("PASSING ONTO SECOND CHILD" + requestForNeighbor.toString());
                 JSONObject jsonBody = new JSONObject();
                 jsonBody.put("Data Replicated on neighbors", "True");
@@ -415,7 +420,7 @@ public class ServerManager implements IServerManager{
         return response;
     }
 
-    public  Request createRequestForNeighborReplication(Data data, Request originalRequest, String senderIP) throws JSONException {
+    public  Request     createRequestForNeighborReplication(Data data, Request originalRequest, String senderIP) throws JSONException {
         JSONObject jsonBody=new JSONObject();
 
         JSONObject jsonData = new JSONObject();

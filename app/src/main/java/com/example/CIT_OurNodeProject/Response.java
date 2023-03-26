@@ -31,7 +31,6 @@ public class Response {
     }
 
     public String toString() {
-        System.out.println("CORRECT TO STRING");
         JSONObject responseJson = new JSONObject();
         try {
             responseJson.put("Status", status);

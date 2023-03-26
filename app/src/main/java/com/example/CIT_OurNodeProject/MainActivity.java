@@ -265,14 +265,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
 
         } else if (view == showDataButton) {
-            String thisNodeData = "This node: " + node.listOfData.toString() + "\n";
+            String thisNodeData = "This node data: " + node.listOfData.toString() + "\n";
             String leftData = "left neighbor data: " + node.neighborLeft.listOfData.toString()+ "\n";
             String rightData = "right neighbor data: " +node.neighborRight.listOfData.toString();
             sUpdate(thisNodeData + leftData + rightData);
             cUpdate(thisNodeData + leftData + rightData);
         } else if (view == showPhonebookButton) {
-            String thisNodeData = "This node: " + node.phoneBookRight.toString() + "\n";
-            String thisNodePhonebookLeft = "This node: " + node.phoneBookLeft.toString() + "\n";
+            String thisNodeData = "Right phonebook: " + node.phoneBookRight.toString() + "\n";
+            String thisNodePhonebookLeft = "Left phonebook: " + node.phoneBookLeft.toString() + "\n";
             sUpdate(thisNodeData + thisNodePhonebookLeft );
 
         }

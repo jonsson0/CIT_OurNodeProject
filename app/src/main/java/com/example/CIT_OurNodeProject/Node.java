@@ -25,7 +25,9 @@ public class Node {
         this.IP = IP;
     }
 
+    public Node(){
 
+    }
 
     public boolean checkForData(String id){
         for (Data data : listOfData) {
@@ -37,6 +39,14 @@ public class Node {
         return false;
     }
 
+    public boolean hasData(Data data){
+        for ( Data dat:
+                this.listOfData) {
+            if (data.value.equals(dat.value))
+                return true;
+        }
+        return false;
+    }
 
     public void addDataFromString(String inputString, Boolean isParent) {
         Data data = new Data(inputString, isParent);
