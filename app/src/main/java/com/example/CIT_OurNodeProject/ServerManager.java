@@ -22,6 +22,8 @@ public class ServerManager implements IServerManager{
         this.node = node;
         clientManager = new ClientManager(node);
     }
+
+    // Take any request and call the correct request handle methods
     @Override
     public Response handleRequestFromClient(Request request, String clientIP){
         Response response = new Response();
@@ -31,15 +33,16 @@ public class ServerManager implements IServerManager{
                 response = generateResponse_GetId();
                 break;
             case "updatephonebook":
-                System.out.println("UPDATEPHONEBOOK");
                 response = generateResponse_UpdatePhonebook(request);
                 break;
             case "getphonebook":
                 response = generateResponse_GetPhonebook(request);
-                System.out.println("GETPHONEBOOK");
                 break;
             case "getdata":
                 response = generateResponse_GetData(request);
+                break;
+            case "fixneighbor":
+                response = generateResponse_FixNeighbor(request);
                 break;
             case "adddata":
                 try {
@@ -65,6 +68,8 @@ public class ServerManager implements IServerManager{
         return response;
 
     }
+
+    // Return ID
     @Override
     public Response generateResponse_GetId() {
         Response response = new Response();
@@ -81,6 +86,7 @@ public class ServerManager implements IServerManager{
         return response;
     }
 
+    // Method for handling update phonebook requests
     @Override
     public Response generateResponse_UpdatePhonebook(Request request) {
 
@@ -103,7 +109,6 @@ public class ServerManager implements IServerManager{
             // inner json
             String side = jsonBodyData.getString("Side");
             jsonArrayOfIP = new JSONArray(jsonBodyData.getString("PhoneBook"));
-            System.out.println("pqetrjfioæw4etwioiyherjieropjityjiotjioytuioe" + jsonArrayOfIP.get(0));
             // foreach json in jsonArrayOfIP add it to the new phonebook
             for (int i = 0; i < jsonArrayOfIP.length(); i++) {
 
@@ -121,19 +126,18 @@ public class ServerManager implements IServerManager{
                     System.out.println("I got a new phonebook, and I dont need to swap my left neighbor");
                 } else {
                     System.out.println("I got a new phonebook, and I need to swap left neighbor");
-                    node.neighborLeft.IP = phoneBook.IPs.get(0);
-                    node.neighborLeft.removeAllData();
-//                    node.neighborLeft.
-//                    node.neighborLeft.addData();
-//                    Response getDataResponse = clientManager.sendOutRequest_getData(node.neighborLeft.IP);
-//                    ArrayList<Data> dat = getDataResponse.<>
 
+                    node.neighborLeft.IP = phoneBook.IPs.get(0);
+                    // clean the data from the Neighbor
+                    node.neighborLeft.removeAllData();
+                    // Also send the data
                     clientManager.sendOutRequest_addData(node.neighborLeft.IP, node.listOfData, false);
 
                 }
                 node.phoneBookLeft = phoneBook;
                 System.out.println("New phonebookLeft: " + node.phoneBookLeft.IPs);
 
+            // If we we're asked to update our right phonebook
             } else if (side.equalsIgnoreCase("right")) {
 
                 if (phoneBook.IPs.get(0).equals(node.neighborRight.IP)) {
@@ -142,6 +146,7 @@ public class ServerManager implements IServerManager{
                     System.out.println("I got a new phonebook, and I need to swap right neighbor");
                     node.neighborRight.IP = phoneBook.IPs.get(0);
                     node.neighborRight.removeAllData();
+
                     clientManager.sendOutRequest_addData(node.neighborRight.IP, node.listOfData, false);
                 }
 
