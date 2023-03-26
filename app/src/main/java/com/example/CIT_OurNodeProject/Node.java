@@ -84,4 +84,15 @@ public class Node {
         this.listOfData.add(dataToAdd);
     }
 
+
+    public String getData(String id) {
+        String result="";
+        for (Data data : listOfData) {
+            if (data.id.equals(id)) {
+                result = data.value;
+            }
+        }
+        return result;
+    }
+
 }
